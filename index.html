@@ -1,16 +1,109 @@
 <!DOCTYPE html>
-<html>
+<html style="height: 100%">
   <head>
     <meta charset="UTF-8">
-    <title>Hello World!</title>
-  </head>
-  <body>
-    <h1>Hello World!</h1>
-    <!-- All of the Node.js APIs are available in this renderer process. -->
-    We are using Node.js <script>document.write(process.versions.node)</script>,
-    Chromium <script>document.write(process.versions.chrome)</script>,
-    and Electron <script>document.write(process.versions.electron)</script>.
+    <title>Loom</title>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css" rel="stylesheet">
+    <style>
+        body
+        {
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0, 0, 0, 0.3); 
+            padding: 0; 
+            margin: 0;
+            -webkit-app-region:drag;
+        }
+        #stats
+        {
+            position: absolute;
+            bottom: 0;
+            font-size: 9px;
+            font-family: arial;
+            background-color: #333;
+            color: #fefefe;
+            padding: 1px 5px;
+            width: 100%;
+            height: 10px;
+            -webkit-app-region:drag;
+            -webkit-user-select: none;
+        }
+        canvas
+        {
+            -webkit-app-region: no-drag;
+        }
+        .rect
+        {
+            font-size: 9px;
+            font-family: arial;
+            color: #fefefe;
+            background-color: #333;
+            border-radius: 2px;
+            padding: 1px;
+            display: none;
+        }
+        .setting.name
+        {
+            font-size: 9px;
+            border: none;
+            border-radius: 3px;
+            width: 50px;
+        }
+        .hide
+        {
+            display: none;
+        }
+        select
+        {
+            font-size: 9px;
+        }
+        .showhide
+        {
+            font-size: 10px;
+        }
+        .fa
+        {
+            color: white;
+            font-size: 10px;
+        }
+    </style>
+    <script type="x-tmpl-mustache" id="tmpl-menu">
+        <i class="fa fa-cog showhide" aria-hidden="true"></i>
 
+        <i class="fa fa-trash remove setting hide" aria-hidden="true"></i>
+        <input type="text" class='name setting hide'>        
+        <select class='childof setting hide'>
+            <option>Child of</option>
+        </select>
+
+        <select class='type setting hide'>
+            <option>Type</option>
+            <option>Linear</option>
+            <option>Parallel</option>
+            <option>Orthogonal</option>
+            <option>Helper</option>
+        </select>
+
+        <select class='actor setting hide'>
+            <option>Actor</option>
+            <option>Arcball</option>
+            <option>Arcball-reset</option>
+            <option>Button</option>
+            <option>Hover</option>
+        </select>
+        <div class='rect'>{{rect}}</div>
+    </script>
+
+    <script type="x-tmpl-mustache" id="tmpl-stats">
+        <i class="fa fa-arrows" aria-hidden="true"></i> 
+        X: {{x}}, Y: {{y}}
+    </script>
+
+  </head>
+  <body style="">
+    <div id="root"></div>
+    <canvas id="canvas" width="100" height="100"></canvas>
+    <div id='stats'></div>
     <script>
       // You can also require other files to run in this process
       require('./renderer.js')

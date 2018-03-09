@@ -1,0 +1,26 @@
+body
+{
+    margin: 0;
+}
+#parallel_video
+{
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0.0;
+}
+#parallel_video_canvas
+{
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+.vjs-waiting 
+{
+  visibility: hidden;
+  background: transparent;
+}
+.vjs-loading-spinner 
+{
+  display: none !important;
+} 
