@@ -1,64 +1,35 @@
-<head>
-  <link href="http://vjs.zencdn.net/6.1.0/video-js.css" rel="stylesheet">
+<html>
+    <head>
+        <link href="http://vjs.zencdn.net/6.1.0/video-js.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet">
 
-    <style>
-        body
-        {
-            margin: 0;
-        }
-        #parallel_video
-        {
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0.0;
-        }
-        #parallel_video_canvas
-        {
-            position: absolute;
-            left: 0;
-            top: 0;
-        }
-        .vjs-waiting 
-        {
-          visibility: hidden;
-          background: transparent;
-        }
-        .vjs-loading-spinner 
-        {
-          display: none !important;
-        } 
-    </style>
-  <!-- If you'd like to support IE8 -->
-    <script src="http://vjs.zencdn.net/ie8/1.1.2/videojs-ie8.min.js"></script>
-    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
-    <script src="js/color.js"></script>
-    <script src="js/sylvester.js"></script>
-    <script src="js/math.js"></script>
-    <script src="js/arcball.js"></script>
-    <script src="js/tools.js"></script>
-    <script src="js/arcball_manager.js"></script>
+        <script src="http://vjs.zencdn.net/ie8/1.1.2/videojs-ie8.min.js"></script>
+        <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+        <script src="js/color.js"></script>
+        <script src="js/sylvester.js"></script>
+        <script src="js/math.js"></script>
+        <script src="js/arcball.js"></script>
+        <script src="js/tools.js"></script>
+        <script src="js/arcball_manager.js"></script>
+        <script src="js/loom.js"></script>
+    </head>
+    <body>
+    <video id="video" class="video-js" preload="auto" data-setup="{}">
+        <source src="videos/loom2.mp4" type='video/mp4'>
+        <p class="vjs-no-js">
+          To view this video please enable JavaScript, and consider upgrading to a web browser that
+          <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+        </p>
+    </video>
 
-    <script>
-    </script>
-</head>
-
-<body>
-  <video id="video" class="video-js" preload="auto" data-setup="{}">
-    <source src="videos/loom.mp4" type='video/mp4'>
-    <p class="vjs-no-js">
-      To view this video please enable JavaScript, and consider upgrading to a web browser that
-      <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
-    </p>
-  </video>
-
-  <video id="parallel_video" class="video-js" preload="auto" data-setup="{}">
-    <source src="videos/parallel_loom.mp4" type='video/mp4'>
-    <p class="vjs-no-js">
-      To view this video please enable JavaScript, and consider upgrading to a web browser that
-      <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
-    </p>
-  </video>
-  <canvas id="parallel_video_canvas"></canvas>
-  <script src="http://vjs.zencdn.net/6.1.0/video.js"></script>
+    <video id="parallel_video" class="video-js" preload="auto" data-setup="{}">
+        <source src="videos/loom2.mp4" type='video/mp4'>
+        <p class="vjs-no-js">
+          To view this video please enable JavaScript, and consider upgrading to a web browser that
+          <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+        </p>
+    </video>
+    <canvas id="parallel_video_canvas"></canvas>
+    <script src="http://vjs.zencdn.net/6.1.0/video.js"></script>
 </body>
+</html>
