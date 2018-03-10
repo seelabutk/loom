@@ -12,6 +12,7 @@
             background-color: rgba(0, 0, 0, 0.3); 
             padding: 0; 
             margin: 0;
+            overflow: hidden;
             -webkit-app-region:drag;
         }
         #stats
@@ -22,7 +23,6 @@
             font-family: arial;
             background-color: #333;
             color: #fefefe;
-            padding: 1px 5px;
             width: 100%;
             height: 10px;
             -webkit-app-region:drag;
@@ -66,16 +66,18 @@
             color: white;
             font-size: 10px;
         }
+        #stats .fa
+        {
+            font-size: 9px;
+        }
     </style>
     <script type="x-tmpl-mustache" id="tmpl-menu">
         <i class="fa fa-cog showhide" aria-hidden="true"></i>
-
         <i class="fa fa-trash remove setting hide" aria-hidden="true"></i>
         <input type="text" class='name setting hide'>        
         <select class='childof setting hide'>
             <option>Child of</option>
         </select>
-
         <select class='type setting hide'>
             <option>Type</option>
             <option>Linear</option>
@@ -83,7 +85,6 @@
             <option>Orthogonal</option>
             <option>Helper</option>
         </select>
-
         <select class='actor setting hide'>
             <option>Actor</option>
             <option>Arcball</option>
@@ -100,7 +101,7 @@
     </script>
 
   </head>
-  <body style="">
+  <body>
     <div id="root"></div>
     <canvas id="canvas" width="100" height="100"></canvas>
     <div id='stats'></div>

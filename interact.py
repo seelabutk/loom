@@ -13,6 +13,7 @@ from PIL import ImageChops
 import numpy as np
 
 linear_counter = 0
+BREAK_DFI = False
 
 def screenshot(window, save=True):
     global linear_counter
@@ -128,23 +129,41 @@ def arcball(window, target, helper):
         mouse.release(Button.left)
         sleep(1)
 
+def isLeaf(target):
+    if 'children' not in target or len(target['children']) == 0:
+        return True
+    return False
+
 # pre-order traversal
-def dfi(configs, target):
+def dfi(configs, target, helpers):
+    print 'calling dfi for ', target['name']
     global linear_counter
+    global BREAK_DFI
+
+    if BREAK_DFI == True:
+        return False
+
+    if 'child_visit_counter' not in target:
+        target['child_visit_counter'] = 0
+
     # visit the node first 
-    if 'visited' not in target:
+    # if the target has not been visited yet or if it's a non leaf node, then visit it
+    if ('visited' not in target or not isLeaf(target)) and \
+            ('children' not in target or \
+            target['child_visit_counter'] != len(target['children'])):
         target['visited'] = 1
         if target['name'] != 'root':
             #MOA::take an empty screenshot for the root
-
+            is_leaf = isLeaf(target)
             if target['type'] == 'parallel' and target['actor'] == 'button':
                 target['frame_no'] = linear_counter
                 parallel_clicker(configs['window'], target, True)
+                print 'parallel click'
                 sleep(0.5)
 
             if target['type'] == 'linear' and target['actor'] == 'arcball':
                 helper = None
-                for temp in configs['children']:
+                for temp in helpers:
                     if temp['type'] == 'helper' and temp['actor'] == 'arcball-reset':
                         helper = temp
                 target['frame_no'] = linear_counter
@@ -166,15 +185,43 @@ def dfi(configs, target):
 
         for i, _ in enumerate(target['children']):
             if target['child_visit_counter'] != len(target['children']):
-                dfi(configs, target['children'][i])
-                target['child_visit_counter'] += 1
+                feedback = dfi(configs, target['children'][i], helpers)
+                print 'Feedback', feedback
+                if feedback == True:
+                    target['child_visit_counter'] += 1
+                print target['child_visit_counter'], len(target['children'])
+                if isLeaf(target['children'][i]) and target['child_visit_counter'] == len(target['children']):
+                    BREAK_DFI = True
+                    return True 
+                elif target['child_visit_counter'] == len(target['children']):
+                    return True
+                if BREAK_DFI == True:
+                    break
+
+    if isLeaf(target):
+        return True
+
+    return False
 
 # subsequent pre-order traversals from the root
-def interact(configs):
+def interact(configs, helpers):
+    global BREAK_DFI
     configs['child_visit_counter'] = 0
     while configs['child_visit_counter'] != len(configs['children']):
-        dfi(configs, configs)
+        BREAK_DFI = False
+        feedback = dfi(configs, configs, helpers)
+        print feedback, 'from root'
     return configs
+
+
+def extractHelpers(configs):
+    helpers = []
+    for i, _ in enumerate(configs['children']):
+        if configs['children'][i]['type'] == 'helper':
+            helpers.append(configs['children'][i].copy())
+
+    configs['children'] = [x for x in configs['children'] if x['type'] != 'helper']
+    return configs, helpers
 
 if __name__ == '__main__':
     # clear previous images
@@ -185,7 +232,11 @@ if __name__ == '__main__':
     with open(config_filename) as fp:
         configs = json.load(fp)
 
-    configs = interact(configs)
+    # remove helpers from the targets and handle them in a separate list
+    # this is so that they don't interfere with the DFI function and
+    # the child_visit_counter 
+    configs, helpers = extractHelpers(configs)
+    configs = interact(configs, helpers)
 
     with open(config_filename, 'w') as fp:
         json.dump(configs, fp)

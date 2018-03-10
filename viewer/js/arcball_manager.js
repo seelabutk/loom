@@ -80,7 +80,7 @@
         var zoom_offset = Math.abs(this.camera.zoomScale - 512) / 300;
         var one_zoom_worth = 684; 
 
-        this.video.currentTime((index+1)/30);
+        this.video.currentTime((index+1)/30 + this.settings.frame_offset);
     }
 
     ArcballManager.prototype.translateAnglesToFrame = function(yaw, pitch, roll)
@@ -103,7 +103,7 @@
     ArcballManager.prototype.setAngles = function(yaw, pitch, roll)
     {
         var index = this.translateAnglesToFrame(yaw, pitch, roll);
-        this.video.currentTime((index+1)/30);
+        this.video.currentTime((index+1)/30 + this.settings.frame_offset);
     }
 
     ArcballManager.prototype.rotate = function(mouse_x, mouse_y, lowquality)

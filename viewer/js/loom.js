@@ -182,7 +182,7 @@ class Viewer
     // finds a target by its name
     findByName(name)
     {
-        for (var i = 0; i < Object.keys(this.targets).length; i++)
+        for (var i in this.targets)
         {
             if (this.targets[i]['name'] == name)
             {
@@ -221,6 +221,15 @@ class Viewer
                     this.clearParallelVideoCanvas();
                     this.changeState(e.target, "video");
                 }.bind(this));
+            }
+            if (target.type == 'linear' && target.actor == 'arcball')
+            {
+                let handler = this.createInteractionHandler(target);
+                var arcball = $(handler).ArcballManager({
+                    width: target.rect.width,
+                    height: target.rect.height,
+                    frame_offset: target['frame_no']
+                });
             }
         }
         if (target.hasOwnProperty('children'))
