@@ -137,6 +137,17 @@ class Viewer
             let video = videojs(video_name); // video layer to change
             video.currentTime((frame + 1) / this.fps);
         }
+
+        $(".interaction-handler").each(function(){
+            $(this).css("z-index", 100);
+        });
+        for (var i = 0; i < this.current_state.children.length; i++)
+        {
+            let frame = this.current_state.children[i].frame_no;
+            $(".interaction-handler[data-frame=" + frame + "]").each(function(){
+                $(this).css("z-index", 1000);
+            });
+        }
     }
 
     // tries to find a target state in the immediate children of another 
