@@ -3,7 +3,7 @@ class Viewer
     constructor()
     {
         this.targets = {}; // a linear representation of the targets
-        this.fps = 29;
+        this.fps = 30;
     }
 
     load(config_filename)
@@ -96,12 +96,11 @@ class Viewer
             videojs.options.children.loadingSpinner = false;
             player.play();
             player.pause();
-            player.currentTime(1/29);
+            player.currentTime(0/29);
 
             player.off("click");
             player.on("click", function(ev){
                 ev.preventDefault();
-                
             });
         });
     }
@@ -127,6 +126,7 @@ class Viewer
     changeState(target_el, video_name)
     {
         let frame = parseInt($(target_el).attr("data-frame")); // frame for this interaction
+        console.log('Frame', frame, 'for', video_name);
         let target = this.targets[frame];
         if (this.findChild(target, this.current_state) != null 
                 || this.findSibling(target, this.current_state) != null
@@ -135,7 +135,7 @@ class Viewer
         {
             this.current_state = target;
             let video = videojs(video_name); // video layer to change
-            video.currentTime(frame / this.fps);
+            video.currentTime((frame + 1) / this.fps);
         }
     }
 
@@ -225,10 +225,15 @@ class Viewer
             if (target.type == 'linear' && target.actor == 'arcball')
             {
                 let handler = this.createInteractionHandler(target);
+                var self = this;
                 var arcball = $(handler).ArcballManager({
                     width: target.rect.width,
                     height: target.rect.height,
-                    frame_offset: target['frame_no']
+                    frame_offset: parseInt(target['frame_no']),
+                    interaction_callback: function()
+                    {
+                        self.clearParallelVideoCanvas();   
+                    }
                 });
             }
         }

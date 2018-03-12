@@ -15,6 +15,7 @@ import numpy as np
 linear_counter = 0
 BREAK_DFI = False
 
+# note: screenshot increments linear_counter if it saves
 def screenshot(window, save=True):
     global linear_counter
     with mss.mss() as sct:
@@ -146,12 +147,18 @@ def dfi(configs, target, helpers):
     if 'child_visit_counter' not in target:
         target['child_visit_counter'] = 0
 
+    if 'visited' not in target and target['name'] == 'root':
+        # first time we're visiting the root, let's take a picture
+        target['frame_no'] = linear_counter
+        screenshot(configs['window'])
+
     # visit the node first 
     # if the target has not been visited yet or if it's a non leaf node, then visit it
     if ('visited' not in target or not isLeaf(target)) and \
             ('children' not in target or \
             target['child_visit_counter'] != len(target['children'])):
         target['visited'] = 1
+
         if target['name'] != 'root':
             #MOA::take an empty screenshot for the root
             is_leaf = isLeaf(target)

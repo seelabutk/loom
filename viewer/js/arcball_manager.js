@@ -80,30 +80,34 @@
         var zoom_offset = Math.abs(this.camera.zoomScale - 512) / 300;
         var one_zoom_worth = 684; 
 
-        this.video.currentTime((index+1)/30 + this.settings.frame_offset);
+        var frame = (index + 1) % 500 + this.settings.frame_offset;
+        frame = frame / 30;
+        console.log("Frame: ", frame * 30); 
+        this.video.currentTime(frame);
     }
 
     ArcballManager.prototype.translateAnglesToFrame = function(yaw, pitch, roll)
     {
         yaw = 360 - yaw;
-        yaw = (yaw) % 360;
+        //yaw = (yaw) % 360;
         var yaw_index = Math.floor(yaw / 14.4);
 
-        console.log(yaw, pitch, roll);
         
         pitch += 90;
         pitch = Math.max(pitch, 0);
         pitch = Math.min(pitch, 171);
         var pitch_index = Math.floor(pitch / 9);
         var index = yaw_index * 180 / 9 + pitch_index;
-        console.log("Frame: ", index); 
         return index;
     }
 
     ArcballManager.prototype.setAngles = function(yaw, pitch, roll)
     {
         var index = this.translateAnglesToFrame(yaw, pitch, roll);
-        this.video.currentTime((index+1)/30 + this.settings.frame_offset);
+        var frame = (index + 1) % 500 + this.settings.frame_offset;
+        frame = frame / 30;
+        console.log("Frame: ", frame); 
+        this.video.currentTime(frame);
     }
 
     ArcballManager.prototype.rotate = function(mouse_x, mouse_y, lowquality)
@@ -121,6 +125,7 @@
     {
         var self = this;
         $(this.element).on("mousedown", function(){
+            self.settings.interaction_callback();
             self.is_drag = true;
 
             self.camera.LastRot = self.camera.ThisRot;
