@@ -80,7 +80,7 @@ class Viewer
             {
                 var magenta = [60.3199336, 98.254218, -60.842984];     
                 var other = rgb2lab([r, g, b]);
-                if (deltaE(magenta, other) < 20)
+                if (deltaE(magenta, other) < 17)
                 {
                     pixels.data[i + 3] = 0;
                 }
@@ -236,6 +236,7 @@ class Viewer
             if (target.type == 'linear' && target.actor == 'arcball')
             {
                 let handler = this.createInteractionHandler(target);
+                this.targets[target.frame_no] = target;
                 var self = this;
                 var arcball = $(handler).ArcballManager({
                     width: target.rect.width,
@@ -243,6 +244,7 @@ class Viewer
                     frame_offset: parseInt(target['frame_no']),
                     interaction_callback: function()
                     {
+                        self.changeState(handler[0], "video");
                         self.clearParallelVideoCanvas();   
                     }
                 });
