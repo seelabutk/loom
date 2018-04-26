@@ -51,30 +51,80 @@ def parallel_clicker(window, target, click=True):
     sleep(1)
     img = screenshot(window, False)
     
-    diff = ImageChops.difference(img, base_img)
-    diff_np = np.array(diff)
-    img_np = np.array(img)
-    orig_color = (0, 0, 0)
-    replacement_color = (255, 0, 255) # magenta
-    img_np[(diff_np == orig_color).all(axis=-1)] = replacement_color
-    result = Image.fromarray(img_np, mode='RGB')
+    SUPERIMPOSE = False
+    if SUPERIMPOSE:
+        diff = ImageChops.difference(img, base_img)
+        diff_np = np.array(diff)
+        img_np = np.array(img)
+        orig_color = (0, 0, 0)
+        replacement_color = (255, 0, 255) # magenta
+        img_np[(diff_np == orig_color).all(axis=-1)] = replacement_color
+        result = Image.fromarray(img_np, mode='RGB')
+    else:
+        img_np = np.array(img)
+        result = Image.fromarray(img_np, mode='RGB')
 
     filename = "images/" + str(linear_counter).zfill(5) + ".png"
     with open(filename, 'w') as fp:
         result.save(fp)
 
     linear_counter += 1
-    
 
 def clicker(window, target, click=True):
     sleep(0.5)
     mouse = Controller()
     mouse.position = (window['x'] + target['rect']['x'] + target['rect']['width'] / 2, \
             window['y'] + target['rect']['y'] + target['rect']['height'] / 2)
-    sleep(0.1)
+    print(target['name'])
     if click == True:
         mouse.click(Button.left)
+    sleep(0.5)
     screenshot(window)
+
+
+def slider(window, target):
+    sleep(1)
+    mouse = Controller()
+    intervals = 10
+    short_delay = 0.1
+    step = (target['rect']['width'] - target['rect']['x']) / intervals
+    position = (window['x'] + target['rect']['x'] + 1, \
+            window['y'] + target['rect']['y'] + target['rect']['height'] / 2)
+    mouse.position = position
+    sleep(short_delay)
+    for i in range(intervals):
+        mouse.press(Button.left)
+        sleep(short_delay)
+        position = (position[0] + step, position[1])
+        mouse.position = position
+        sleep(short_delay)
+        mouse.release(Button.left)
+        sleep(1)
+        screenshot(window)
+
+def drag(window, target):
+    sleep(1)
+    mouse = Controller()
+    intervals = 10
+    short_delay = 0.1
+    step = 20# (target['rect']['height'] - target['rect']['y']) / intervals
+    position = (window['x'] + target['rect']['x'] + target['rect']['width'] / 2, \
+            window['y'] + target['rect']['y'] + 1)
+    orig_position = position
+    mouse.position = position
+    sleep(short_delay)
+    for i in range(intervals):
+        mouse.press(Button.left)
+        sleep(short_delay)
+        position = (position[0], position[1] + step)
+        mouse.position = position
+        sleep(short_delay)
+        mouse.release(Button.left)
+        sleep(2)
+        screenshot(window)
+        mouse.position = orig_position
+        sleep(short_delay)
+
 
 def arcball(window, target, helper):
     sleep(2)
@@ -152,8 +202,15 @@ def dfi(configs, target, helpers):
         target['frame_no'] = linear_counter
         screenshot(configs['window'])
 
+    was_visited_before = False
+    if 'visited' not in target or target['visited'] == 0:
+        was_visited_before = False
+    else:
+        was_visited_before = True
+
     # visit the node first 
     # if the target has not been visited yet or if it's a non leaf node, then visit it
+    # AND all its children should not have been visited or it doesn't have children
     if ('visited' not in target or not isLeaf(target)) and \
             ('children' not in target or \
             target['child_visit_counter'] != len(target['children'])):
@@ -181,7 +238,17 @@ def dfi(configs, target, helpers):
                 clicker(configs['window'], target, True)
                 sleep(0.5)
 
-            elif target['type'] == 'linear' and target['actor'] == 'hover':
+            elif target['type'] == 'linear' and target['actor'] == 'slider':
+                target['frame_no'] = linear_counter
+                slider(configs['window'], target)
+                sleep(0.5)
+
+            elif target['type'] == 'linear' and target['actor'] == 'drag':
+                target['frame_no'] = linear_counter
+                drag(configs['window'], target)
+                sleep(0.5)
+
+            elif target['actor'] == 'hover':
                 target['frame_no'] = linear_counter
                 clicker(configs['window'], target, False)
                 sleep(0.5)
@@ -196,16 +263,16 @@ def dfi(configs, target, helpers):
                 print 'Feedback', feedback
                 if feedback == True:
                     target['child_visit_counter'] += 1
-                print target['child_visit_counter'], len(target['children'])
+                print target['name'], ":", target['child_visit_counter'], len(target['children'])
                 if isLeaf(target['children'][i]) and target['child_visit_counter'] == len(target['children']):
                     BREAK_DFI = True
                     return True 
-                elif target['child_visit_counter'] == len(target['children']):
+                elif target['child_visit_counter'] == len(target['children']) and feedback == True:
                     return True
                 if BREAK_DFI == True:
                     break
 
-    if isLeaf(target):
+    if isLeaf(target) and not was_visited_before:
         return True
 
     return False

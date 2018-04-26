@@ -13,7 +13,7 @@ let mainWindow
 
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600, transparent: true, frame: false})
+  mainWindow = new BrowserWindow({title: "LOA", width: 800, height: 600, transparent: true, frame: false})
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
@@ -22,6 +22,7 @@ function createWindow () {
     slashes: true
   }))
 
+  mainWindow.setTitle("LOA");
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
   

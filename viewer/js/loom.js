@@ -123,9 +123,16 @@ class Viewer
     }
 
     // determine if state can change and change it if it can
-    changeState(target_el, video_name)
+    changeState(target_el, video_name, offset)
     {
-        let frame = parseInt($(target_el).attr("data-frame")); // frame for this interaction
+        video_name = "video";
+        if (typeof offset == "undefined")
+        {
+            offset = 0;
+        }
+
+        // frame for this interaction
+        let frame = parseInt($(target_el).attr("data-frame")); 
         console.log('Frame', frame, 'for', video_name);
         let target = this.targets[frame];
         if (this.findChild(target, this.current_state) != null 
@@ -135,18 +142,28 @@ class Viewer
         {
             this.current_state = target;
             let video = videojs(video_name); // video layer to change
-            video.currentTime((frame + 1) / this.fps);
+            video.currentTime((frame + 1 + offset) / this.fps);
         }
 
         $(".interaction-handler").each(function(){
             $(this).css("z-index", 100);
         });
-        for (var i = 0; i < this.current_state.children.length; i++)
+        if (this.current_state.hasOwnProperty('children'))
         {
-            let frame = this.current_state.children[i].frame_no;
-            $(".interaction-handler[data-frame=" + frame + "]").each(function(){
+            for (var i = 0; i < this.current_state.children.length; i++)
+            {
+                let frame = this.current_state.children[i].frame_no;
+                $(".interaction-handler[data-frame=" + frame + "]").each(function(){
+                    $(this).css("z-index", 1000);
+                });
+            }
+        }
+        else
+        {
+            /*let frame = this.current_state.frame_no;
+            $(".interaction-handler[data-frame=]" + frame + "]").each(function(){
                 $(this).css("z-index", 1000);
-            });
+            });*/
         }
     }
 
@@ -230,9 +247,42 @@ class Viewer
                 this.targets[target.frame_no] = target;
                 handler.on("mouseover", function(e){
                     this.clearParallelVideoCanvas();
-                    this.changeState(e.target, "video");
+                    this.changeState(e.target, "video", 0);
                 }.bind(this));
             }
+
+            if (target.type == 'linear' && target.actor == 'slider')
+            {
+                let handler = this.createInteractionHandler(target);
+                this.targets[target.frame_no] = target;
+                handler.on("mousemove", function(e){
+                    var target_offset = $(e.target).offset();
+                    var target_width = $(e.target).outerWidth();
+                    var rel_x = e.pageX - target_offset.left;
+                    var step_size = target_width / 10;
+                    var offset = rel_x / step_size;
+
+                    this.clearParallelVideoCanvas();
+                    this.changeState(e.target, "video", offset);
+                }.bind(this));
+            }
+
+            if (target.type == 'linear' && target.actor == 'drag')
+            {
+                let handler = this.createInteractionHandler(target);
+                this.targets[target.frame_no] = target;
+                handler.on("mousemove", function(e){
+                    var target_offset = $(e.target).offset();
+                    var target_height = $(e.target).outerHeight();
+                    var rel_y = e.pageY - target_offset.top;
+                    var step_size = target_height / 10;
+                    var offset = rel_y / step_size;
+
+                    this.clearParallelVideoCanvas();
+                    this.changeState(e.target, "video", offset);
+                }.bind(this));
+            }
+
             if (target.type == 'linear' && target.actor == 'arcball')
             {
                 let handler = this.createInteractionHandler(target);

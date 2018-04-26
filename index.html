@@ -76,9 +76,9 @@
         <i class="fa fa-trash remove setting hide" aria-hidden="true"></i>
         <input type="text" class='name setting hide'>        
         <select class='childof setting hide'>
-            <option>Child of</option>
+            <option>Parent</option>
         </select>
-        <select class='type setting hide'>
+        <select class='type setting hide' style="display: none">
             <option>Type</option>
             <option>Linear</option>
             <option>Parallel</option>
@@ -86,11 +86,12 @@
             <option>Helper</option>
         </select>
         <select class='actor setting hide'>
-            <option>Actor</option>
+            <option>Action</option>
             <option>Arcball</option>
             <option>Arcball-reset</option>
             <option>Button</option>
             <option>Hover</option>
+            <option>Slider</option>
         </select>
         <div class='rect'>{{rect}}</div>
     </script>

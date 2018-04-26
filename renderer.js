@@ -190,7 +190,7 @@ function addMenu(rect) {
         }
 
         let option = document.createElement("option");
-        option.innerHTML = "Child of";
+        option.innerHTML = "Parent";
         this.options.add(option);
         let id = parseInt(this.parentNode.getAttribute("data-id"));
         for (i in targets)
@@ -265,12 +265,16 @@ function prepareSave(targets) {
         var menu = targets[i].menu;
         var id = parseInt(menu.getAttribute("data-id"));
         var name = menu.querySelector(".name").value.toLowerCase();
-        var type = menu.querySelector(".type").value.toLowerCase();
+        var type = "linear"; //menu.querySelector(".type").value.toLowerCase();
         var actor = menu.querySelector(".actor").value.toLowerCase();
         var parent = menu.querySelector(".childof").selectedOptions[0].value.toLowerCase();
-        if (parent == "child of")
+        if (parent == "parent")
         {
             parent = "root";
+        }
+        if (actor == "arcball-reset")
+        {
+            type = "helper";
         }
         var temp = JSON.parse(menu.querySelector(".rect").innerHTML);
         var rect = {};
@@ -308,6 +312,9 @@ function prepareSave(targets) {
                 {
                     found_parent.children = [];
                 }
+                // found_parent has children, set its type to parallel for now
+                found_parent.type = "parallel";
+
                 found_parent.children.push(not_placed[i]);
                 not_placed.splice(i, 1);
                 break;
