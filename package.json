@@ -17,10 +17,12 @@
   "author": "GitHub",
   "license": "CC0-1.0",
   "devDependencies": {
-    "electron": "~1.8.2",
+    "electron": "^1.8.7",
     "electron-builder": "^20.8.1"
   },
   "dependencies": {
+    "child_process": "^1.0.2",
+    "electron-reload": "^1.2.5",
     "mustache": "^2.3.0"
   }
 }

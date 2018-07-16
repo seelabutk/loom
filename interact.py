@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import platform
 import sys
 import mss
 import mss.tools
@@ -32,7 +33,7 @@ def screenshot(window, save=True):
 def random_select():
     sleep(2)
     mouse = Controller()
-    position = mouse.position
+    #position = mouse.position
     for x in range(100):
         x = random.randint(391, 391 + 664)
         y = random.randint(174, 174 + 357)
@@ -43,8 +44,13 @@ def parallel_clicker(window, target, click=True):
     global linear_counter 
     sleep(0.5)
     mouse = Controller()
-    mouse.position = (window['x'] + target['rect']['x'] + target['rect']['width'] / 2, \
-            window['y'] + target['rect']['y'] + target['rect']['height'] / 2)
+    # Goal: Center of shape, in bounds of shape
+    if target['shape']['type'] == 'rect':
+      mouse.position = (window['x'] + target['shape']['x'] + target['shape']['width'] / 2, \
+              window['y'] + target['shape']['y'] + target['shape']['height'] / 2)
+    elif target['shape']['type'] == 'circ':
+      mouse.position = (window['x'] + target['shape']['centerX'], \
+              window['y'] + target['shape']['centerY'])
     sleep(0.1)
     base_img = screenshot(window, False)
     mouse.click(Button.left)
@@ -73,9 +79,13 @@ def parallel_clicker(window, target, click=True):
 def clicker(window, target, click=True):
     sleep(0.5)
     mouse = Controller()
-    mouse.position = (window['x'] + target['rect']['x'] + target['rect']['width'] / 2, \
-            window['y'] + target['rect']['y'] + target['rect']['height'] / 2)
-    print(target['name'])
+    #Goal: Center of shape, in bounds of shape
+    if target['shape']['type'] == 'rect':
+      mouse.position = (window['x'] + target['shape']['x'] + target['shape']['width'] / 2, \
+              window['y'] + target['shape']['y'] + target['shape']['height'] / 2)
+    elif target['shape']['type'] == 'circ':
+      mouse.position = (window['x'] + target['shape']['centerX'], \
+              window['y'] + target['shape']['centerY'])
     if click == True:
         mouse.click(Button.left)
     sleep(0.5)
@@ -87,9 +97,14 @@ def slider(window, target):
     mouse = Controller()
     intervals = 10
     short_delay = 0.1
-    step = (target['rect']['width'] - target['rect']['x']) / intervals
-    position = (window['x'] + target['rect']['x'] + 1, \
-            window['y'] + target['rect']['y'] + target['rect']['height'] / 2)
+    if target['shape']['type'] == 'rect':
+      step = (target['shape']['width'] - target['shape']['x']) / intervals
+      position = (window['x'] + target['shape']['x'] + target['shape']['width'] / 2, \
+              window['y'] + target['shape']['y'] + target['shape']['height'] / 2)
+    elif target['shape']['type'] == 'circ':
+      step = (3 * target['shape']['radius'] - target['shape']['centerX']) / intervals
+      position = (window['x'] + target['shape']['centerX'], \
+              window['y'] + target['shape']['centerY'])
     mouse.position = position
     sleep(short_delay)
     for i in range(intervals):
@@ -108,8 +123,12 @@ def drag(window, target):
     intervals = 10
     short_delay = 0.1
     step = 20# (target['rect']['height'] - target['rect']['y']) / intervals
-    position = (window['x'] + target['rect']['x'] + target['rect']['width'] / 2, \
-            window['y'] + target['rect']['y'] + 1)
+    if target['shape']['type'] == 'rect':
+      position = (window['x'] + target['shape']['x'] + target['shape']['width'] / 2, \
+            window['y'] + target['shape']['y'] + 1)
+    elif target['shape']['type'] == 'circ':
+      position = (window['x'] + target['shape']['centerX'], \
+            window['y'] + target['shape']['centerY'])
     orig_position = position
     mouse.position = position
     sleep(short_delay)
@@ -129,8 +148,12 @@ def drag(window, target):
 def arcball(window, target, helper):
     sleep(2)
     mouse = Controller()
-    position = (window['x'] + target['rect']['x'] + target['rect']['width'] / 2, \
-            window['y'] + target['rect']['y'] + target['rect']['height'] / 2)
+    if target['shape']['type'] == 'rect':
+      position = (window['x'] + target['shape']['x'] + target['shape']['width'] / 2, \
+              window['y'] + target['shape']['y'] + target['shape']['height'] / 2)
+    elif target['shape']['type'] == 'circ':
+      position = (window['x'] + target['shape']['centerX'], \
+              window['y'] + target['shape']['centerY'])
     short_delay = 0.1
     pitch = 20
     mouse.position = position
@@ -138,7 +161,7 @@ def arcball(window, target, helper):
     mouse.click(Button.left)
 
     for x in range(1, 26):
-        print position
+        print (position)
         mouse.position = position
         sleep(0.5)
         mouse.press(Button.left)
@@ -162,8 +185,12 @@ def arcball(window, target, helper):
         # click helper 
         # move back
         sleep(0.5)
-        mouse.position = (window['x'] + helper['rect']['x'] + helper['rect']['width'] / 2, \
-                window['y'] + helper['rect']['y'] + helper['rect']['height'] / 2)
+        if target['shape']['type'] == 'rect':
+          mouse.position = (window['x'] + target['shape']['x'] + target['shape']['width'] / 2, \
+                  window['y'] + target['shape']['y'] + target['shape']['height'] / 2)
+        elif target['shape']['type'] == 'circ':
+          mouse.position = (window['x'] + target['shape']['centerX'], \
+                  window['y'] + target['shape']['centerY'])
         sleep(0.5)
         mouse.click(Button.left)
         sleep(0.5)
@@ -187,7 +214,7 @@ def isLeaf(target):
 
 # pre-order traversal
 def dfi(configs, target, helpers):
-    print 'calling dfi for ', target['name']
+    print ('calling dfi for ', target['name'])
     global linear_counter
     global BREAK_DFI
 
@@ -218,11 +245,11 @@ def dfi(configs, target, helpers):
 
         if target['name'] != 'root':
             #MOA::take an empty screenshot for the root
-            is_leaf = isLeaf(target)
+            #is_leaf = isLeaf(target)
             if target['type'] == 'parallel' and target['actor'] == 'button':
                 target['frame_no'] = linear_counter
                 parallel_clicker(configs['window'], target, True)
-                print 'parallel click'
+                print ('parallel click')
                 sleep(0.5)
 
             if target['type'] == 'linear' and target['actor'] == 'arcball':
@@ -260,10 +287,10 @@ def dfi(configs, target, helpers):
         for i, _ in enumerate(target['children']):
             if target['child_visit_counter'] != len(target['children']):
                 feedback = dfi(configs, target['children'][i], helpers)
-                print 'Feedback', feedback
+                print ('Feedback', feedback)
                 if feedback == True:
                     target['child_visit_counter'] += 1
-                print target['name'], ":", target['child_visit_counter'], len(target['children'])
+                print (target['name'], ":", target['child_visit_counter'], len(target['children']))
                 if isLeaf(target['children'][i]) and target['child_visit_counter'] == len(target['children']):
                     BREAK_DFI = True
                     return True 
@@ -284,7 +311,7 @@ def interact(configs, helpers):
     while configs['child_visit_counter'] != len(configs['children']):
         BREAK_DFI = False
         feedback = dfi(configs, configs, helpers)
-        print feedback, 'from root'
+        print (feedback, 'from root')
     return configs
 
 
@@ -299,7 +326,10 @@ def extractHelpers(configs):
 
 if __name__ == '__main__':
     # clear previous images
-    os.system("rm images/*.png");
+    if platform.system() == 'Windows':
+      os.system("del images\*.png")
+    else:
+      os.system("rm images/*.png")
 
     config_filename = sys.argv[1]
     configs = {}
@@ -311,8 +341,6 @@ if __name__ == '__main__':
     # the child_visit_counter 
     configs, helpers = extractHelpers(configs)
     configs = interact(configs, helpers)
-
     with open(config_filename, 'w') as fp:
-        json.dump(configs, fp)
-
+        fp.write(json.dumps(configs))
 
