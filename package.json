@@ -23,6 +23,7 @@
   "dependencies": {
     "child_process": "^1.0.2",
     "electron-reload": "^1.2.5",
-    "mustache": "^2.3.0"
+    "mustache": "^2.3.0",
+    "polylabel": "^1.0.2"
   }
 }

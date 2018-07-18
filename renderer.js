@@ -2,6 +2,8 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
+//import polylabel from 'polylabel';
+const polylabel = require("polylabel")
 const electron = require("electron");
 const Mustache = require("mustache");
 const fs = require("fs");
@@ -9,6 +11,7 @@ const exec = require("child_process").exec;
 const Menu = electron.remote.Menu;
 const MenuItem = electron.remote.MenuItem;
 const win = electron.remote.getCurrentWindow();
+
 
 win.removeAllListeners();
 
@@ -119,6 +122,7 @@ targets = []; // all targets in a list
 var ctx = canvas.getContext("2d"),
   rect = null, // global temp rectangle for dragging and drawing rectangles
   circ = null,
+  poly = null,
   target_counter = 0, // used as a unique identifier for the target IDs
   drag = false;
 
@@ -134,7 +138,7 @@ function init() {
 
   setStats();
   document
-    .getElementById("selection")
+    .getElementById("shape-selection")
     .addEventListener("change", selectionChange);
 
   win.on("resize", function() {
@@ -145,7 +149,7 @@ function init() {
 }
 
 function setStats() {
-  var stats = document.getElementById("stats");
+  var stats = document.getElementById("stats-render");
   var position = win.getPosition();
   stats.innerHTML = Mustache.render(stats_template, {
     x: position[0],
@@ -154,7 +158,7 @@ function setStats() {
 }
 
 function selectionChange() {
-  selection = document.getElementById("selection").value;
+  selection = document.getElementById("shape-selection").value;
 }
 
 function mouseDown(e) {
@@ -168,18 +172,42 @@ function mouseDown(e) {
     circ.startX = e.pageX - this.offsetLeft;
     circ.startY = e.pageY - this.offsetTop;
     drag = true;
+  } else if (selection == "Polygon") {
+    if (poly == null) {
+      poly = { type: "poly" };
+      poly.points = [];
+    }
+    let point = { x: e.pageX - this.offsetLeft, y: e.pageY - this.offsetTop };
+    if (poly.points[0]) {
+      if (
+        Math.abs(point.x - poly.points[0].x) <= 10 &&
+        Math.abs(point.y - poly.points[0].y) <= 10
+      ) {
+        point.x = poly.points[0].x;
+        point.y = poly.points[0].y;
+        poly.points.push(point);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        draw(e, true);
+        addMenu(JSON.parse(JSON.stringify(poly)));
+        drag = false;
+        poly = null;
+        return;
+      }
+    }
+    poly.points.push(point);
+    drag = true;
   }
 }
 
 function mouseUp(e) {
-  drag = false;
+  if (selection !== "Polygon") drag = false;
   if (selection == "Rectangle") {
     if (rect.w == 0 && rect.h == 0) return;
     addMenu(JSON.parse(JSON.stringify(rect)));
   } else if (selection == "Circle") {
     if (
-      Math.abs(circ.startX - circ.endX) <= 10 ||
-      Math.abs(circ.startY - circ.endY) <= 10
+      Math.abs(circ.startX - circ.endX) <= 7 ||
+      Math.abs(circ.startY - circ.endY) <= 7
     )
       return;
     addMenu(JSON.parse(JSON.stringify(circ)));
@@ -202,16 +230,19 @@ function mouseMove(e) {
       circ.midY = (circ.endY - circ.startY) / 2 + circ.startY;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       draw();
+    } else if (selection == "Polygon") {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      draw(e);
     }
   }
 }
 
-function draw() {
+function draw(e, done) {
   ctx.setLineDash([6]);
   ctx.strokeStyle = "rgb(200, 200, 200)";
   for (var i in targets) {
     if (targets[i].shape && targets[i].shape.type == "rect") {
-      var r = targets[i].shape;
+      let r = targets[i].shape;
       ctx.strokeRect(r.startX, r.startY, r.w, r.h);
     } else if (targets[i].shape && targets[i].shape.type == "circ") {
       let c = targets[i].shape;
@@ -220,6 +251,14 @@ function draw() {
       );
       ctx.beginPath();
       ctx.arc(c.midX, c.midY, c.rad, 0, 2 * Math.PI);
+      ctx.stroke();
+    } else if (targets[i].shape && targets[i].shape.type == "poly") {
+      let poly = targets[i].shape;
+      ctx.beginPath();
+      ctx.moveTo(poly.points[0].x, poly.points[0].y);
+      for (let j = 1; j < poly.points.length; j++) {
+        ctx.lineTo(poly.points[j].x, poly.points[j].y);
+      }
       ctx.stroke();
     }
   }
@@ -233,6 +272,17 @@ function draw() {
     );
     ctx.beginPath();
     ctx.arc(circ.midX, circ.midY, circ.rad, 0, 2 * Math.PI);
+    ctx.stroke();
+  }
+  if (poly !== null) {
+    ctx.beginPath();
+    ctx.moveTo(poly.points[0].x, poly.points[0].y);
+    for (let j = 1; j < poly.points.length; j++) {
+      ctx.lineTo(poly.points[j].x, poly.points[j].y);
+    }
+    if (!done) {
+      ctx.lineTo(e.pageX, e.pageY);
+    }
     ctx.stroke();
   }
 }
@@ -252,6 +302,16 @@ function addMenu(shape) {
       9.25 -
       4.29 +
       "px";
+  } else if (shape.type && shape.type == "poly") {
+    menu.style.left = shape.points[0].x - 4.29 + "px";
+    menu.style.top = shape.points[0].y - 9.25 + "px";
+    let polygon = [];
+    for (let i = 0; i < shape.points.length; i++) {
+      polygon.push([shape.points[i].x ,shape.points[i].y]);
+    }
+    let center = polylabel([polygon])
+    shape.centerX = center[0];
+    shape.centerY = center[1];
   }
   menu.style.zIndex = 10000;
   menu.classList.add("menu");
@@ -373,6 +433,10 @@ function prepareSave(targets) {
       shape.centerX = temp.midX * ratio;
       shape.centerY = temp.midY * ratio;
       shape.radius = temp.rad * ratio;
+    } else if (shape.type == "poly") {
+      shape.centerX = temp.centerX * ratio;
+      shape.centerY = temp.centerY * ratio;
+      shape.points = temp.points;
     }
 
     var obj = {

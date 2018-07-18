@@ -51,6 +51,9 @@ def parallel_clicker(window, target, click=True):
     elif target['shape']['type'] == 'circ':
       mouse.position = (window['x'] + target['shape']['centerX'], \
               window['y'] + target['shape']['centerY'])
+    elif target['shape']['type'] == 'poly':
+      mouse.position = (window['x'] + target['shape']['centerX'], \
+              window['y'] + target['shape']['centerY'])
     sleep(0.1)
     base_img = screenshot(window, False)
     mouse.click(Button.left)
@@ -80,10 +83,14 @@ def clicker(window, target, click=True):
     sleep(0.5)
     mouse = Controller()
     #Goal: Center of shape, in bounds of shape
+    print(target['shape'])
     if target['shape']['type'] == 'rect':
       mouse.position = (window['x'] + target['shape']['x'] + target['shape']['width'] / 2, \
               window['y'] + target['shape']['y'] + target['shape']['height'] / 2)
     elif target['shape']['type'] == 'circ':
+      mouse.position = (window['x'] + target['shape']['centerX'], \
+              window['y'] + target['shape']['centerY'])
+    elif target['shape']['type'] == 'poly':
       mouse.position = (window['x'] + target['shape']['centerX'], \
               window['y'] + target['shape']['centerY'])
     if click == True:
@@ -103,6 +110,10 @@ def slider(window, target):
               window['y'] + target['shape']['y'] + target['shape']['height'] / 2)
     elif target['shape']['type'] == 'circ':
       step = (3 * target['shape']['radius'] - target['shape']['centerX']) / intervals
+      position = (window['x'] + target['shape']['centerX'], \
+              window['y'] + target['shape']['centerY'])
+    elif target['shape']['type'] == 'poly':
+      step = 20
       position = (window['x'] + target['shape']['centerX'], \
               window['y'] + target['shape']['centerY'])
     mouse.position = position
@@ -129,6 +140,9 @@ def drag(window, target):
     elif target['shape']['type'] == 'circ':
       position = (window['x'] + target['shape']['centerX'], \
             window['y'] + target['shape']['centerY'])
+    elif target['shape']['type'] == 'poly':
+      position = (window['x'] + target['shape']['centerX'], \
+              window['y'] + target['shape']['centerY'])
     orig_position = position
     mouse.position = position
     sleep(short_delay)
@@ -152,6 +166,9 @@ def arcball(window, target, helper):
       position = (window['x'] + target['shape']['x'] + target['shape']['width'] / 2, \
               window['y'] + target['shape']['y'] + target['shape']['height'] / 2)
     elif target['shape']['type'] == 'circ':
+      position = (window['x'] + target['shape']['centerX'], \
+              window['y'] + target['shape']['centerY'])
+    elif target['shape']['type'] == 'poly':
       position = (window['x'] + target['shape']['centerX'], \
               window['y'] + target['shape']['centerY'])
     short_delay = 0.1
@@ -191,6 +208,9 @@ def arcball(window, target, helper):
         elif target['shape']['type'] == 'circ':
           mouse.position = (window['x'] + target['shape']['centerX'], \
                   window['y'] + target['shape']['centerY'])
+        elif target['shape']['type'] == 'poly':
+          mouse.position = (window['x'] + target['shape']['centerX'], \
+              window['y'] + target['shape']['centerY'])
         sleep(0.5)
         mouse.click(Button.left)
         sleep(0.5)
@@ -214,9 +234,9 @@ def isLeaf(target):
 
 # pre-order traversal
 def dfi(configs, target, helpers):
-    print ('calling dfi for ', target['name'])
     global linear_counter
     global BREAK_DFI
+    print ('calling dfi for ', target['name'])
 
     if BREAK_DFI == True:
         return False

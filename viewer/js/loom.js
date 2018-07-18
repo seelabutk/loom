@@ -93,28 +93,91 @@ class Viewer {
   }
   /* TODO */
   createInteractionHandler(target) {
-    let handler = $("<div>")
-      .addClass("interaction-handler")
-      .appendTo("body");
+    let handler;
     if (target.shape.type == "rect") {
-      handler.css({
-        position: "absolute",
-        left: target.shape.x,
-        top: target.shape.y,
-        width: target.shape.width,
-        height: target.shape.height,
-        border: "1px solid rgba(0, 0, 0, 0.0)"
-      });
+      handler = $("<div>")
+        .addClass("interaction-handler")
+        .appendTo("body")
+        .css({
+          position: "absolute",
+          left: target.shape.x,
+          top: target.shape.y,
+          width: target.shape.width,
+          height: target.shape.height,
+          border: "1px solid rgba(0, 0, 0, 0.0)",
+          border: "1px solid blue"
+        });
     } else if (target.shape.type == "circ") {
-      handler.css({
-        position: "absolute",
-        left: target.shape.centerX - target.shape.radius,
-        top: target.shape.centerY - target.shape.radius,
-        width: 2 * target.shape.radius,
-        height: 2 * target.shape.radius,
-        border: "1px solid rgba(0, 0, 0, 0.0)",
-        borderRadius: "50%"
+      handler = $("<div>")
+        .addClass("interaction-handler")
+        .appendTo("body")
+        .css({
+          position: "absolute",
+          left: target.shape.centerX - target.shape.radius,
+          top: target.shape.centerY - target.shape.radius,
+          width: 2 * target.shape.radius,
+          height: 2 * target.shape.radius,
+          border: "1px solid rgba(0, 0, 0, 0.0)",
+          border: "1px solid blue",
+          borderRadius: "50%"
+        });
+    } else if (target.shape.type == "poly") {
+      let w,
+        h,
+        topOffset,
+        leftOffset,
+        minX = 100000,
+        minY = 100000,
+        maxX = -1,
+        maxY = -1,
+        polyString = "";
+      for (let i = 0; i < target.shape.points.length; i++) {
+        let x = target.shape.points[i].x;
+        let y = target.shape.points[i].y;
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+      for (let i = 0; i < target.shape.points.length; i++) {
+        let x = target.shape.points[i].x;
+        let y = target.shape.points[i].y;
+        polyString += x - minX + "," + (y - minY);
+        if (i !== target.shape.points.length - 1) polyString += " ";
+      }
+      w = maxX - minX;
+      h = maxY - minY;
+      topOffset = minY;
+      leftOffset = minX;
+      handler = $("<div>")
+        .addClass("interaction-handler")
+        .appendTo("body")
+        .css({
+          position: "absolute",
+          top: topOffset,
+          left: leftOffset,
+          width: w,
+          height: h
+        });
+      let svg = $(
+        document.createElementNS("http://www.w3.org/2000/svg", "svg")
+      );
+      svg.attr({
+        width: w,
+        height: h
       });
+      let polygon = $(
+        document.createElementNS("http://www.w3.org/2000/svg", "polygon")
+      );
+      polygon.attr({
+        points: polyString,
+        fill: "transparent",
+        stroke: "blue",
+        strokeWidth: 5
+      });
+      polygon.appendTo(svg);
+      svg.appendTo(handler);
+      
     }
 
     handler.attr("data-frame", target.frame_no.toString());
@@ -208,32 +271,41 @@ class Viewer {
       if (target.type == "parallel" && target.actor == "button") {
         let handler = this.createInteractionHandler(target);
         this.targets[target.frame_no] = target;
+        if (target.shape.type == "poly") handler = handler.find("svg").find("polygon");
         handler.on(
           "click",
           function(e) {
-            this.changeState(e.target, "parallel_video");
+            let arg = e.currentTarget;
+            if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
+            this.changeState(arg, "parallel_video");
           }.bind(this)
         );
       }
       if (target.type == "linear" && target.actor == "button") {
         let handler = this.createInteractionHandler(target);
         this.targets[target.frame_no] = target;
+        if (target.shape.type == "poly") handler = handler.find("svg").find("polygon");
         handler.on(
           "click",
           function(e) {
+            let arg = e.currentTarget;
             this.clearParallelVideoCanvas();
-            this.changeState(e.target, "video");
+            if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
+            this.changeState(arg, "video");
           }.bind(this)
         );
       }
       if (target.type == "linear" && target.actor == "hover") {
         let handler = this.createInteractionHandler(target);
         this.targets[target.frame_no] = target;
+        if (target.shape.type == "poly") handler = handler.find("svg").find("polygon");
         handler.on(
           "mouseover",
           function(e) {
+            let arg = e.currentTarget;
             this.clearParallelVideoCanvas();
-            this.changeState(e.target, "video", 0);
+            if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
+            this.changeState(arg, "video", 0);
           }.bind(this)
         );
       }
@@ -241,17 +313,20 @@ class Viewer {
       if (target.type == "linear" && target.actor == "slider") {
         let handler = this.createInteractionHandler(target);
         this.targets[target.frame_no] = target;
+        if (target.shape.type == "poly") handler = handler.find("svg").find("polygon");
         handler.on(
           "mousemove",
           function(e) {
-            var target_offset = $(e.target).offset();
-            var target_width = $(e.target).outerWidth();
+            let arg = e.currentTarget;
+            if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
+            var target_offset = $(arg).offset();
+            var target_width = $(arg).outerWidth();
             var rel_x = e.pageX - target_offset.left;
             var step_size = target_width / 10;
             var offset = rel_x / step_size;
 
             this.clearParallelVideoCanvas();
-            this.changeState(e.target, "video", offset);
+            this.changeState(arg, "video", offset);
           }.bind(this)
         );
       }
@@ -259,17 +334,20 @@ class Viewer {
       if (target.type == "linear" && target.actor == "drag") {
         let handler = this.createInteractionHandler(target);
         this.targets[target.frame_no] = target;
+        if (target.shape.type == "poly") handler = handler.find("svg").find("polygon");
         handler.on(
           "mousemove",
           function(e) {
-            var target_offset = $(e.target).offset();
-            var target_height = $(e.target).outerHeight();
+            let arg = e.currentTarget;
+            if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
+            var target_offset = $(arg).offset();
+            var target_height = $(arg).outerHeight();
             var rel_y = e.pageY - target_offset.top;
             var step_size = target_height / 10;
             var offset = rel_y / step_size;
 
             this.clearParallelVideoCanvas();
-            this.changeState(e.target, "video", offset);
+            this.changeState(e.currentTarget, "video", offset);
           }.bind(this)
         );
       }
@@ -277,6 +355,8 @@ class Viewer {
       if (target.type == "linear" && target.actor == "arcball") {
         let handler = this.createInteractionHandler(target);
         this.targets[target.frame_no] = target;
+        if (target.shape.type == "poly") handler = handler.find("svg").find("polygon");
+
         var self = this;
         var arcball = $(handler).ArcballManager({
           width: target.shape.width,

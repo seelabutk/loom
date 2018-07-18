@@ -28,7 +28,11 @@
             -webkit-app-region: drag;
             -webkit-user-select: none;
         }
-        #selection
+        #stats-render,
+        #stats-norender {
+          display: inline-block;
+        }
+        #shape-selection
         {
           color: white;
           background-color: #333;
@@ -37,7 +41,7 @@
           -webkit-app-region: no-drag;
           border-width: 0px;
         }
-        #selection:focus
+        #shape-selection:focus
         {
           outline: none;
         }
@@ -112,23 +116,27 @@
     <script type="x-tmpl-mustache" id="tmpl-stats">
         <i class="fa fa-arrows" aria-hidden="true"></i> 
         X: {{x}}, Y: {{y}}
-        <select id='selection'>
-            <option>
-              Circle
-            </option>
-            <option selected>
-              Rectangle
-            </option>
-            <option>
-              Irregular
-            </option>
-          </select>
     </script>
   </head>
   <body>
     <div id="root"></div>
     <canvas id="canvas" width="100" height="100"></canvas>
-    <div id='stats'></div>
+    <div id='stats'>
+      <div id='stats-render'></div>
+      <div id='stats-norender'>
+        <select id='shape-selection'>
+          <option>
+            Circle
+          </option>
+          <option selected>
+            Rectangle
+          </option>
+          <option>
+            Polygon
+          </option>
+        </select>
+      </div>
+    </div>
     <script>
       // You can also require other files to run in this process
       require('./renderer.js')

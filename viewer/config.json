@@ -1,1 +1,173 @@
-{"id": -1, "name": "root", "children": [{"id": 0, "name": "target 0", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 132.5, "centerY": 661, "radius": 20.303940504246953}, "child_visit_counter": 0, "visited": 1, "frame_no": 1}, {"id": 1, "name": "target 1", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 189.5, "centerY": 706.5, "radius": 21.224985276791124}, "child_visit_counter": 0, "visited": 1, "frame_no": 2}, {"id": 2, "name": "target 2", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 254.5, "centerY": 741.5, "radius": 20.700241544484452}, "child_visit_counter": 0, "visited": 1, "frame_no": 3}, {"id": 3, "name": "target 3", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 324.5, "centerY": 763, "radius": 20.886598574205422}, "child_visit_counter": 0, "visited": 1, "frame_no": 4}, {"id": 4, "name": "target 4", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 397.5, "centerY": 770.5, "radius": 20.40833163195855}, "child_visit_counter": 0, "visited": 1, "frame_no": 5}, {"id": 5, "name": "target 5", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 470.5, "centerY": 764, "radius": 22.051077071199945}, "child_visit_counter": 0, "visited": 1, "frame_no": 6}, {"id": 6, "name": "target 6", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 540.5, "centerY": 742, "radius": 19.83053201505194}, "child_visit_counter": 0, "visited": 1, "frame_no": 7}, {"id": 7, "name": "target 7", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 604.5, "centerY": 707, "radius": 21.005951537600005}, "child_visit_counter": 0, "visited": 1, "frame_no": 8}, {"id": 8, "name": "target 8", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 661.5, "centerY": 659.5, "radius": 21.50581316760657}, "child_visit_counter": 0, "visited": 1, "frame_no": 9}, {"id": 9, "name": "target 9", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 708.5, "centerY": 604.5, "radius": 20.112185361118765}, "child_visit_counter": 0, "visited": 1, "frame_no": 10}, {"id": 10, "name": "target 10", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 743.5, "centerY": 540, "radius": 20.573040611440984}, "child_visit_counter": 0, "visited": 1, "frame_no": 11}, {"id": 11, "name": "target 11", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 764, "centerY": 469.5, "radius": 20.35313243704762}, "child_visit_counter": 0, "visited": 1, "frame_no": 12}, {"id": 12, "name": "target 12", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 771.5, "centerY": 396, "radius": 20.670026608594387}, "child_visit_counter": 0, "visited": 1, "frame_no": 13}, {"id": 13, "name": "target 13", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 765, "centerY": 323, "radius": 20.248456731316587}, "child_visit_counter": 0, "visited": 1, "frame_no": 14}, {"id": 14, "name": "target 14", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 743.5, "centerY": 252.5, "radius": 19.45507645834372}, "child_visit_counter": 0, "visited": 1, "frame_no": 15}, {"id": 15, "name": "target 15", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 661.5, "centerY": 131.5, "radius": 20.89258241577618}, "child_visit_counter": 0, "visited": 1, "frame_no": 16}, {"id": 16, "name": "target 16", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 605.5, "centerY": 85, "radius": 20.155644370746373}, "child_visit_counter": 0, "visited": 1, "frame_no": 17}, {"id": 17, "name": "target 17", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 540.5, "centerY": 50.5, "radius": 19.557607215607945}, "child_visit_counter": 0, "visited": 1, "frame_no": 18}, {"id": 18, "name": "target 18", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 471, "centerY": 29, "radius": 19.313207915827967}, "child_visit_counter": 0, "visited": 1, "frame_no": 19}, {"id": 19, "name": "target 19", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 397.5, "centerY": 22, "radius": 20.155644370746373}, "child_visit_counter": 0, "visited": 1, "frame_no": 20}, {"id": 20, "name": "target 20", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 324.5, "centerY": 29, "radius": 19.981241202688086}, "child_visit_counter": 0, "visited": 1, "frame_no": 21}, {"id": 21, "name": "target 21", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 254.5, "centerY": 50.5, "radius": 19.60867155112758}, "child_visit_counter": 0, "visited": 1, "frame_no": 22}, {"id": 22, "name": "target 22", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 190, "centerY": 85, "radius": 20.591260281974}, "child_visit_counter": 0, "visited": 1, "frame_no": 23}, {"id": 23, "name": "target 23", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 133, "centerY": 131, "radius": 20}, "child_visit_counter": 0, "visited": 1, "frame_no": 24}, {"id": 24, "name": "target 24", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 86, "centerY": 189, "radius": 20}, "child_visit_counter": 0, "visited": 1, "frame_no": 25}, {"id": 25, "name": "target 25", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 51.5, "centerY": 253, "radius": 20.180436070610565}, "child_visit_counter": 0, "visited": 1, "frame_no": 26}, {"id": 26, "name": "target 26", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 31, "centerY": 323.5, "radius": 20.22992832414391}, "child_visit_counter": 0, "visited": 1, "frame_no": 27}, {"id": 27, "name": "target 27", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 23, "centerY": 396.5, "radius": 20.155644370746373}, "child_visit_counter": 0, "visited": 1, "frame_no": 28}, {"id": 28, "name": "target 28", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 30.5, "centerY": 469.5, "radius": 20.506096654409877}, "child_visit_counter": 0, "visited": 1, "frame_no": 29}, {"id": 29, "name": "target 29", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 51.5, "centerY": 539.5, "radius": 19.81161275615895}, "child_visit_counter": 0, "visited": 1, "frame_no": 30}, {"id": 30, "name": "target 30", "type": "linear", "actor": "hover", "parent": "root", "shape": {"type": "circ", "centerX": 86.5, "centerY": 604, "radius": 19.13765920900464}, "child_visit_counter": 0, "visited": 1, "frame_no": 31}], "window": {"x": 692, "y": 170, "width": 800, "height": 805}, "child_visit_counter": 31, "frame_no": 0, "visited": 1}
+{
+  "id": -1,
+  "name": "root",
+  "children": [
+    {
+      "id": 0,
+      "name": "target 0",
+      "type": "linear",
+      "actor": "hover",
+      "parent": "root",
+      "shape": {
+        "type": "circ",
+        "centerX": 30.5,
+        "centerY": 397.5,
+        "radius": 21.50581316760657
+      },
+      "child_visit_counter": 0,
+      "visited": 1,
+      "frame_no": 1
+    },
+    {
+      "id": 1,
+      "name": "target 1",
+      "type": "linear",
+      "actor": "hover",
+      "parent": "root",
+      "shape": {
+        "type": "circ",
+        "centerX": 37.5,
+        "centerY": 470.5,
+        "radius": 20.506096654409877
+      },
+      "child_visit_counter": 0,
+      "visited": 1,
+      "frame_no": 2
+    },
+    {
+      "id": 2,
+      "name": "target 2",
+      "type": "linear",
+      "actor": "hover",
+      "parent": "root",
+      "shape": {
+        "type": "circ",
+        "centerX": 59,
+        "centerY": 540.5,
+        "radius": 20.402205763103165
+      },
+      "child_visit_counter": 0,
+      "visited": 1,
+      "frame_no": 3
+    },
+    {
+      "id": 3,
+      "name": "target 3",
+      "type": "linear",
+      "actor": "hover",
+      "parent": "root",
+      "shape": { "type": "rect", "x": 69, "y": 583, "width": 47, "height": 46 },
+      "child_visit_counter": 0,
+      "visited": 1,
+      "frame_no": 4
+    },
+    {
+      "id": 4,
+      "name": "target 4",
+      "type": "linear",
+      "actor": "hover",
+      "parent": "root",
+      "shape": {
+        "type": "rect",
+        "x": 116,
+        "y": 647,
+        "width": 45,
+        "height": 35
+      },
+      "child_visit_counter": 0,
+      "visited": 1,
+      "frame_no": 5
+    },
+    {
+      "id": 5,
+      "name": "target 5",
+      "type": "linear",
+      "actor": "hover",
+      "parent": "root",
+      "shape": {
+        "type": "rect",
+        "x": 173,
+        "y": 691,
+        "width": 46,
+        "height": 37
+      },
+      "child_visit_counter": 0,
+      "visited": 1,
+      "frame_no": 6
+    },
+    {
+      "id": 6,
+      "name": "target 6",
+      "type": "linear",
+      "actor": "hover",
+      "parent": "root",
+      "shape": {
+        "type": "poly",
+        "centerX": 262.140625,
+        "centerY": 741.984375,
+        "points": [
+          { "x": 245, "y": 730 },
+          { "x": 266, "y": 717 },
+          { "x": 282, "y": 735 },
+          { "x": 280, "y": 757 },
+          { "x": 261, "y": 767 },
+          { "x": 241, "y": 749 },
+          { "x": 245, "y": 730 }
+        ]
+      },
+      "child_visit_counter": 0,
+      "visited": 1,
+      "frame_no": 7
+    },
+    {
+      "id": 7,
+      "name": "target 7",
+      "type": "linear",
+      "actor": "hover",
+      "parent": "root",
+      "shape": {
+        "type": "poly",
+        "centerX": 334.125,
+        "centerY": 764.125,
+        "points": [
+          { "x": 318, "y": 748 },
+          { "x": 350, "y": 746 },
+          { "x": 353, "y": 771 },
+          { "x": 336, "y": 786 },
+          { "x": 311, "y": 772 },
+          { "x": 318, "y": 748 }
+        ]
+      },
+      "child_visit_counter": 0,
+      "visited": 1,
+      "frame_no": 8
+    },
+    {
+      "id": 8,
+      "name": "target 8",
+      "type": "linear",
+      "actor": "hover",
+      "parent": "root",
+      "shape": {
+        "type": "poly",
+        "centerX": 402.21875,
+        "centerY": 772.78125,
+        "points": [
+          { "x": 388, "y": 758 },
+          { "x": 427, "y": 751 },
+          { "x": 418, "y": 788 },
+          { "x": 387, "y": 792 },
+          { "x": 383, "y": 770 },
+          { "x": 388, "y": 758 }
+        ]
+      },
+      "child_visit_counter": 0,
+      "visited": 1,
+      "frame_no": 9
+    }
+  ],
+  "window": { "x": 684, "y": 169, "width": 800, "height": 809 },
+  "child_visit_counter": 9,
+  "frame_no": 0,
+  "visited": 1
+}
