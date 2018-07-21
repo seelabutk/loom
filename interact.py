@@ -19,6 +19,7 @@ BREAK_DFI = False
 # note: screenshot increments linear_counter if it saves
 def screenshot(window, save=True):
     global linear_counter
+    sleep(float(sys.argv[2])/1000)
     with mss.mss() as sct:
         monitor = {'top': window['y'], 'left': window['x'], \
                 'width': window['width'], 'height': window['height']}
@@ -350,7 +351,6 @@ if __name__ == '__main__':
       os.system("del images\*.png")
     else:
       os.system("rm images/*.png")
-
     config_filename = sys.argv[1]
     configs = {}
     with open(config_filename) as fp:

@@ -30,6 +30,7 @@
         }
         #stats-render,
         #stats-norender {
+          max-height: 13px;
           display: inline-block;
         }
         #shape-selection
@@ -44,6 +45,18 @@
         #shape-selection:focus
         {
           outline: none;
+        }
+        #delay
+        {
+          height: 12px;
+          border-color: #333;
+          -webkit-user-select: all;
+          -webkit-app-region: no-drag;
+          border-width: 0px;
+          max-width: 25px;
+          padding: 0px;
+          font-size: 10px;
+          text-align: right;
         }
         canvas
         {
@@ -135,6 +148,7 @@
             Polygon
           </option>
         </select>
+        Screenshot Delay: <input type='text' id='delay'>ms
       </div>
     </div>
     <script>

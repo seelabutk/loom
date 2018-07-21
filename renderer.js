@@ -55,11 +55,14 @@ var menu = Menu.buildFromTemplate([
         label: "Run",
         accelerator: "CmdOrCtrl+R",
         click: function() {
+          let delay = document.getElementById('delay').value;
+          delay = (!isNaN(parseFloat(delay)) && isFinite(delay)) ? ' ' + delay : ' 250';
+          console.log(delay); 
           let cmd =
             process.platform === "win32"
               ? "python interact.py ./viewer/config.json"
               : "interact.py ./viewer/config.json";
-          interactor = execute(cmd, function(output) {
+          interactor = execute(cmd + delay, function(output) {
             console.log(output);
           });
         }
@@ -77,7 +80,6 @@ var menu = Menu.buildFromTemplate([
         label: "Export Video",
         accelerator: "CmdOrCtrl+E",
         click: function() {
-          console.log("here");
           let width = parseInt(Math.floor(win.getBounds()["width"] / 2) * 2);
           let height = parseInt(Math.floor(win.getBounds()["height"] / 2) * 2);
           let window_size = width + ":" + height;
