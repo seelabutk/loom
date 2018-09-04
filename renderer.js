@@ -24,13 +24,13 @@ function execute(command, callback) {
   let commands = command.split(" ");
   let process = spawn(commands.splice(0, 1)[0], commands);
 
-  process.stdout.on("data", function(data) {
+  process.stdout.on("data", function (data) {
     console.log(new TextDecoder("utf-8").decode(data));
   });
-  process.stderr.on("data", function(data) {
+  process.stderr.on("data", function (data) {
     console.log(new TextDecoder("utf-8").decode(data));
   });
-  process.on("exit", function(code) {
+  process.on("exit", function (code) {
     console.log(code);
   });
 }
@@ -43,21 +43,20 @@ var menu = Menu.buildFromTemplate([
       {
         label: "Save",
         accelerator: "CmdOrCtrl+S",
-        click: function() {
+        click: function () {
           fs.writeFile(
             "./viewer/config.json",
             JSON.stringify(prepareSave(targets)),
-            () => {}
+            () => { }
           );
         }
       },
       {
         label: "Run",
         accelerator: "CmdOrCtrl+R",
-        click: function() {
+        click: function () {
           let delay = document.getElementById('delay').value;
-          delay = (!isNaN(parseFloat(delay)) && isFinite(delay)) ? ' ' + delay : ' 250';
-          console.log(delay); 
+          delay = (!isNaN(parseFloat(delay)) && isFinite(delay)) ? ' ' + delay : ' 250'; 
           let cmd =
             process.platform === "win32"
               ? "python interact.py ./viewer/config.json"
@@ -70,7 +69,7 @@ var menu = Menu.buildFromTemplate([
       {
         label: "Stop",
         accelerator: "CmdOrCtrl+K",
-        click: function() {
+        click: function () {
           if (interactor !== null) {
             interactor.kill();
           }
@@ -79,7 +78,7 @@ var menu = Menu.buildFromTemplate([
       {
         label: "Export Video",
         accelerator: "CmdOrCtrl+E",
-        click: function() {
+        click: function () {
           let width = parseInt(Math.floor(win.getBounds()["width"] / 2) * 2);
           let height = parseInt(Math.floor(win.getBounds()["height"] / 2) * 2);
           let window_size = width + ":" + height;
@@ -87,7 +86,7 @@ var menu = Menu.buildFromTemplate([
             process.platform === "win32"
               ? "generate_loom.bat "
               : "./generate_loom.sh ";
-          execute(cmd + window_size, function(output) {
+          execute(cmd + window_size, function (output) {
             console.log(output);
           });
         }
@@ -95,14 +94,14 @@ var menu = Menu.buildFromTemplate([
       {
         label: "Developer Tools",
         accelerator: "CmdOrCtrl+I",
-        click: function() {
+        click: function () {
           win.webContents.openDevTools();
         }
       },
       {
         label: "Exit",
         accelerator: "CmdOrCtrl+Q",
-        click: function() {
+        click: function () {
           electron.remote.app.quit();
         }
       }
@@ -134,7 +133,7 @@ function init() {
   canvas.addEventListener("mousemove", mouseMove, false);
 
   var win = electron.remote.getCurrentWindow();
-  win.on("move", function() {
+  win.on("move", function () {
     setStats();
   });
 
@@ -143,10 +142,11 @@ function init() {
     .getElementById("shape-selection")
     .addEventListener("change", selectionChange);
 
-  win.on("resize", function() {
-    var dimensions = win.getBounds();
+  win.on("resize", function () {
+    let dimensions = win.getBounds();
     canvas.width = dimensions.width;
     canvas.height = dimensions.height - 15;
+    draw();
   });
 }
 
@@ -204,7 +204,7 @@ function mouseDown(e) {
 function mouseUp(e) {
   if (selection !== "Polygon") drag = false;
   if (selection == "Rectangle") {
-    if (rect.w == 0 && rect.h == 0) return;
+    if (typeof rect.w == 'undefined' || typeof rect.h == 'undefined' || (rect.w == 0 && rect.h == 0)) return;
     addMenu(JSON.parse(JSON.stringify(rect)));
   } else if (selection == "Circle") {
     if (
@@ -234,7 +234,7 @@ function mouseMove(e) {
       draw();
     } else if (selection == "Polygon") {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      draw(e);
+      draw(e, false);
     }
   }
 }
@@ -243,50 +243,44 @@ function draw(e, done) {
   ctx.setLineDash([6]);
   ctx.strokeStyle = "rgb(200, 200, 200)";
   for (var i in targets) {
-    if (targets[i].shape && targets[i].shape.type == "rect") {
-      let r = targets[i].shape;
-      ctx.strokeRect(r.startX, r.startY, r.w, r.h);
-    } else if (targets[i].shape && targets[i].shape.type == "circ") {
-      let c = targets[i].shape;
-      c.rad = Math.sqrt(
-        Math.pow(c.midX - c.endX, 2) + Math.pow(c.midY - c.endY, 2)
-      );
-      ctx.beginPath();
-      ctx.arc(c.midX, c.midY, c.rad, 0, 2 * Math.PI);
-      ctx.stroke();
-    } else if (targets[i].shape && targets[i].shape.type == "poly") {
-      let poly = targets[i].shape;
-      ctx.beginPath();
-      ctx.moveTo(poly.points[0].x, poly.points[0].y);
-      for (let j = 1; j < poly.points.length; j++) {
-        ctx.lineTo(poly.points[j].x, poly.points[j].y);
-      }
-      ctx.stroke();
+    let shape = targets[i].shape;
+    if (shape && shape.type == "rect") {
+      drawRectangle(shape);
+    } else if (shape && shape.type == "circ") {
+      drawCircle(shape);
+    } else if (shape && shape.type == "poly") {
+      drawPolygon(shape);
     }
   }
 
-  if (rect !== null) {
-    ctx.strokeRect(rect.startX, rect.startY, rect.w, rect.h);
+  if (rect !== null) drawRectangle(rect);
+  if (circ !== null) drawCircle(circ);
+  if (poly !== null) drawPolygon(poly, e, done);
+}
+
+function drawRectangle(rect) {
+  ctx.strokeRect(rect.startX, rect.startY, rect.w, rect.h);
+}
+
+function drawCircle(c) {
+  c.rad = Math.sqrt(
+    Math.pow(c.midX - c.endX, 2) + Math.pow(c.midY - c.endY, 2)
+  );
+  ctx.beginPath();
+  ctx.arc(c.midX, c.midY, c.rad, 0, 2 * Math.PI);
+  ctx.stroke();
+}
+
+function drawPolygon(poly, e, done) {
+  ctx.beginPath();
+  ctx.moveTo(poly.points[0].x, poly.points[0].y);
+  for (let j = 1; j < poly.points.length; j++) {
+    ctx.lineTo(poly.points[j].x, poly.points[j].y);
   }
-  if (circ !== null) {
-    circ.rad = Math.sqrt(
-      Math.pow(circ.midX - circ.endX, 2) + Math.pow(circ.midY - circ.endY, 2)
-    );
-    ctx.beginPath();
-    ctx.arc(circ.midX, circ.midY, circ.rad, 0, 2 * Math.PI);
-    ctx.stroke();
+  if (typeof done !== 'undefined' && !done) {
+    ctx.lineTo(e.pageX, e.pageY);
   }
-  if (poly !== null) {
-    ctx.beginPath();
-    ctx.moveTo(poly.points[0].x, poly.points[0].y);
-    for (let j = 1; j < poly.points.length; j++) {
-      ctx.lineTo(poly.points[j].x, poly.points[j].y);
-    }
-    if (!done) {
-      ctx.lineTo(e.pageX, e.pageY);
-    }
-    ctx.stroke();
-  }
+  ctx.stroke();
 }
 
 function addMenu(shape) {
@@ -309,7 +303,7 @@ function addMenu(shape) {
     menu.style.top = shape.points[0].y - 9.25 + "px";
     let polygon = [];
     for (let i = 0; i < shape.points.length; i++) {
-      polygon.push([shape.points[i].x ,shape.points[i].y]);
+      polygon.push([shape.points[i].x, shape.points[i].y]);
     }
     let center = polylabel([polygon])
     shape.centerX = center[0];
@@ -321,13 +315,13 @@ function addMenu(shape) {
   let id = target_counter++;
   menu.setAttribute("data-id", id);
   menu.innerHTML = Mustache.render(template, { shape: JSON.stringify(shape) });
-  menu.querySelector(".showhide").addEventListener("click", function() {
-    menu.querySelectorAll(".setting").forEach(function(item) {
+  menu.querySelector(".showhide").addEventListener("click", function () {
+    menu.querySelectorAll(".setting").forEach(function (item) {
       item.classList.toggle("hide");
     });
   });
   document.body.appendChild(menu);
-  menu.querySelector(".remove").addEventListener("click", function() {
+  menu.querySelector(".remove").addEventListener("click", function () {
     let id = parseInt(menu.getAttribute("data-id"));
     for (i in targets) {
       if (targets[i].id == id) {
@@ -340,7 +334,7 @@ function addMenu(shape) {
     draw();
   });
 
-  menu.querySelector(".childof").addEventListener("focus", function() {
+  menu.querySelector(".childof").addEventListener("focus", function () {
     // remove all current options
     while (this.options.length > 0) {
       this.options.remove(0);
@@ -360,13 +354,14 @@ function addMenu(shape) {
     }
   });
 
-  menu.querySelector(".name").addEventListener("change", function() {
+  menu.querySelector(".name").addEventListener("change", function () {
     let id = parseInt(this.parentNode.getAttribute("data-id"));
     for (var i in targets) {
       let target = targets[i];
       if (target.id == id) {
         target.name = this.value;
       }
+
     }
   });
 
@@ -385,7 +380,7 @@ function addMenu(shape) {
   targets.push({ id: id, name: name, menu: menu, shape: shape });
 }
 
-search = function(obj, name) {
+search = function (obj, name) {
   if (obj.name == name) {
     return obj;
   }
