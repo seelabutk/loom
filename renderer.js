@@ -60,7 +60,7 @@ var menu = Menu.buildFromTemplate([
           let cmd =
             process.platform === "win32"
               ? "python interact.py ./viewer/config.json"
-              : "interact.py ./viewer/config.json";
+              : "python interact.py ./viewer/config.json";
           interactor = execute(cmd + delay, function(output) {
             console.log(output);
           });
