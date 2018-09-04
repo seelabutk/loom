@@ -59,8 +59,8 @@ var menu = Menu.buildFromTemplate([
           delay = (!isNaN(parseFloat(delay)) && isFinite(delay)) ? ' ' + delay : ' 250'; 
           let cmd =
             process.platform === "win32"
-              ? "python interact.py ./viewer/config.json"
-              : "python interact.py ./viewer/config.json";
+              ? "python interact.py ./viewer/config.json 2000"
+              : "python interact.py ./viewer/config.json 2000";
           interactor = execute(cmd + delay, function(output) {
             console.log(output);
           });
@@ -420,7 +420,8 @@ function prepareSave(targets) {
     var temp = JSON.parse(menu.querySelector(".shape").innerHTML);
     var shape = {};
     shape.type = temp.type;
-    let ratio = window.devicePixelRatio;
+
+    let ratio = 1; //window.devicePixelRatio;
     if (shape.type == "rect") {
       shape.x = temp.startX * ratio;
       shape.y = temp.startY * ratio;

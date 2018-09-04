@@ -34,7 +34,7 @@ def screenshot(window, save=True):
 def random_select():
     sleep(2)
     mouse = Controller()
-    #position = mouse.position
+    position = mouse.position
     for x in range(100):
         x = random.randint(391, 391 + 664)
         y = random.randint(174, 174 + 357)
@@ -266,7 +266,7 @@ def dfi(configs, target, helpers):
 
         if target['name'] != 'root':
             #MOA::take an empty screenshot for the root
-            #is_leaf = isLeaf(target)
+            is_leaf = isLeaf(target)
             if target['type'] == 'parallel' and target['actor'] == 'button':
                 target['frame_no'] = linear_counter
                 parallel_clicker(configs['window'], target, True)
