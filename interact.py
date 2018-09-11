@@ -356,6 +356,8 @@ if __name__ == '__main__':
     with open(config_filename) as fp:
         configs = json.load(fp)
 
+    sleep(3)
+
     # remove helpers from the targets and handle them in a separate list
     # this is so that they don't interfere with the DFI function and
     # the child_visit_counter 
