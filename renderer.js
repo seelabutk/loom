@@ -2,7 +2,6 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-//import polylabel from 'polylabel';
 const polylabel = require("polylabel")
 const electron = require("electron");
 const Mustache = require("mustache");
@@ -15,11 +14,11 @@ const desktopCapturer = electron.desktopCapturer;
 const electronScreen = electron.screen;
 const Photon = require("electron-photon");
 
-var GC = {}; // The global context; 
-GC.shapes = {}; // temporary shapes for drawing
-
 win.removeAllListeners();
 
+/* 
+ * Global variables not in GC. Must be moved to GC later. 
+ */
 var interactor = null; // the external interactor process 
 
 // Set up Mustache templates
@@ -34,13 +33,32 @@ canvas.width = document.body.clientWidth;
 canvas.height = document.body.clientHeight - 15;
 var ctx = canvas.getContext("2d");
 
-// Set up the global context
+/* 
+ * The global context
+ */
+var GC = {}; 
+
+/*
+ * Global constants
+ */
+GC.MIN_CIRCLE_WIDTH = 7;
+GC.MIN_CIRCLE_HEIGHT = 7;
+
+GC.TOOLS = {
+    TARGET_RECTANGLE: "rectangle",
+    TARGET_CIRCLE: "circle",
+    TARGET_POLYGON: "polygon", 
+    TARGET_SMART: "smart",
+    SELECTION_CURSOR: "cursor"
+}
+
+// More global variables in GC 
 targets = []; // all targets in a list
-GC.shapes.rect = null; // global temp rectangle for dragging and drawing rectangles
-GC.shapes.circ = null;
-GC.shapes.poly = null;
+GC.shape = null; // global temp shape for dragging and drawing 
 GC.target_counter = 0; // used as a unique identifier for the target IDs
 GC.drag = false;
+GC.current_tool = GC.TOOLS.SELECTION_CURSOR;
+
 
 /*
  * Executes an external process
@@ -199,88 +217,106 @@ function init() {
 }
 
 function mouseDown(e) {
-    if (GC.selector_type == "rectangle") 
+    if (GC.current_tool == GC.TOOLS.TARGET_RECTANGLE || 
+        GC.current_tool == GC.TOOLS.TARGET_SMART || 
+        GC.current_tool == GC.TOOLS.SELECTION_CURSOR) 
     {
-        GC.shapes.rect = { type: "rect" };
-        GC.shapes.rect.startX = e.pageX - this.offsetLeft;
-        GC.shapes.rect.startY = e.pageY - this.offsetTop;
+        GC.shape = { type: "rect" };
+        GC.shape.startX = e.pageX - this.offsetLeft;
+        GC.shape.startY = e.pageY - this.offsetTop;
         GC.drag = true;
     } 
-    else if (GC.selector_type == "circle") 
+    else if (GC.current_tool == GC.TOOLS.TARGET_CIRCLE) 
     {
-        GC.shapes.circ = { type: "circ" };
-        GC.shapes.circ.startX = e.pageX - this.offsetLeft;
-        GC.shapes.circ.startY = e.pageY - this.offsetTop;
+        GC.shape = { type: "circ" };
+        GC.shape.startX = e.pageX - this.offsetLeft;
+        GC.shape.startY = e.pageY - this.offsetTop;
         GC.drag = true;
     } 
-    else if (GC.selector_type == "polygon") 
+    else if (GC.current_tool == GC.TOOLS.TARGET_POLYGON) 
     {
-        if (GC.shapes.poly == null) {
-            GC.shapes.poly = { type: "poly" };
-            GC.shapes.poly.points = [];
+        if (GC.shape == null) {
+            GC.shape = { type: "poly" };
+            GC.shape.points = [];
         }
         let point = { x: e.pageX - this.offsetLeft, y: e.pageY - this.offsetTop };
-        if (GC.shapes.poly.points[0]) {
-            if (
-                    Math.abs(point.x - GC.shapes.poly.points[0].x) <= 10 &&
-                    Math.abs(point.y - GC.shapes.poly.points[0].y) <= 10
-               ) {
-                point.x = GC.shapes.poly.points[0].x;
-                point.y = GC.shapes.poly.points[0].y;
-                GC.shapes.poly.points.push(point);
+        if (GC.shape.points[0]) 
+        {
+            if (Math.abs(point.x - GC.shape.points[0].x) <= 10 &&
+                Math.abs(point.y - GC.shape.points[0].y) <= 10) 
+            {
+                point.x = GC.shape.points[0].x;
+                point.y = GC.shape.points[0].y;
+                GC.shape.points.push(point);
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 draw(e, true);
-                addMenu(JSON.parse(JSON.stringify(GC.shapes.poly)));
+                addMenu(JSON.parse(JSON.stringify(GC.shape)));
                 GC.drag = false;
-                GC.shapes.poly = null;
+                GC.shape = null;
                 return;
             }
         }
-        GC.shapes.poly.points.push(point);
+        GC.shape.points.push(point);
         GC.drag = true;
     }
 }
 
 function mouseUp(e) {
-    if (GC.selector_type !== "polygon") GC.drag = false;
-    if (GC.selector_type == "rectangle") 
+    // The polygon tool doesn't have dragging
+    if (GC.current_tool !== GC.TOOLS.TARGET_POLYGON)
     {
-        if (typeof GC.shapes.rect.w == 'undefined' 
-                || typeof GC.shapes.rect.h == 'undefined' 
-                || (GC.shapes.rect.w == 0 && GC.shapes.rect.h == 0)) 
-            return;
-        addMenu(JSON.parse(JSON.stringify(GC.shapes.rect)));
-    } 
-    else if (GC.selector_type == "circle") 
-    {
-        if (Math.abs(GC.shapes.circ.startX - GC.shapes.circ.endX) <= 7 
-                || Math.abs(GC.shapes.circ.startY - GC.shapes.circ.endY) <= 7)
-            return;
-        addMenu(JSON.parse(JSON.stringify(GC.shapes.circ)));
+        GC.drag = false;
     }
-    GC.shapes.rect = null;
-    GC.shapes.circ = null;
+
+    if (GC.current_tool == GC.TOOLS.TARGET_RECTANGLE) 
+    {
+        if (typeof GC.shape.w == 'undefined' || 
+            typeof GC.shape.h == 'undefined' ||
+            (GC.shape.w == 0 && GC.shape.h == 0)) 
+        {
+            return;
+        }
+        addMenu(JSON.parse(JSON.stringify(GC.shape)));
+    } 
+    else if (GC.current_tool == GC.TOOLS.TARGET_CIRCLE) 
+    {
+        if (Math.abs(GC.shape.startX - GC.shape.endX) <= GC.MIN_CIRCLE_WIDTH ||
+            Math.abs(GC.shape.startY - GC.shape.endY) <= GC.MIN_CIRCLE_HEIGHT)
+        {
+            return;
+        }
+        addMenu(JSON.parse(JSON.stringify(GC.shape)));
+    }
+    else if (GC.current_tool == GC.TOOLS.SELECTION_CURSOR)
+    {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    GC.shape = null;
     //ctx.clearRect(0,0,canvas.width,canvas.height);
 }
 
 function mouseMove(e) {
     if (GC.drag) {
-        if (GC.selector_type == "rectangle") {
-            GC.shapes.rect.w = e.pageX - this.offsetLeft - GC.shapes.rect.startX;
-            GC.shapes.rect.h = e.pageY - this.offsetTop - GC.shapes.rect.startY;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            draw();
-        } 
-        else if (GC.selector_type == "circle") 
+        if (GC.current_tool == GC.TOOLS.TARGET_RECTANGLE || 
+            GC.current_tool == GC.TOOLS.TARGET_SMART || 
+            GC.current_tool == GC.TOOLS.SELECTION_CURSOR) 
         {
-            GC.shapes.circ.endX = e.pageX - this.offsetLeft;
-            GC.shapes.circ.endY = e.pageY - this.offsetTop;
-            GC.shapes.circ.midX = (GC.shapes.circ.endX - GC.shapes.circ.startX) / 2 + GC.shapes.circ.startX;
-            GC.shapes.circ.midY = (GC.shapes.circ.endY - GC.shapes.circ.startY) / 2 + GC.shapes.circ.startY;
+            GC.shape.w = e.pageX - this.offsetLeft - GC.shape.startX;
+            GC.shape.h = e.pageY - this.offsetTop - GC.shape.startY;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             draw();
         } 
-        else if (GC.selector_type == "polygon") 
+        else if (GC.current_tool == GC.TOOLS.TARGET_CIRCLE) 
+        {
+            GC.shape.endX = e.pageX - this.offsetLeft;
+            GC.shape.endY = e.pageY - this.offsetTop;
+            GC.shape.midX = (GC.shape.endX - GC.shape.startX) / 2 + GC.shape.startX;
+            GC.shape.midY = (GC.shape.endY - GC.shape.startY) / 2 + GC.shape.startY;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            draw();
+        } 
+        else if (GC.current_tool == GC.TOOLS.TARGET_POLYGON) 
         {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             draw(e, false);
@@ -291,30 +327,47 @@ function mouseMove(e) {
 function draw(e, done) {
     ctx.setLineDash([6]);
     ctx.strokeStyle = "rgb(200, 200, 200)";
-    for (var i in targets) {
+    for (var i in targets) 
+    {
         let shape = targets[i].shape;
-        if (shape && shape.type == "rect") {
+        if (shape && shape.type == "rect") 
+        {
             drawRectangle(shape);
-        } else if (shape && shape.type == "circ") {
+        } 
+        else if (shape && shape.type == "circ") 
+        {
             drawCircle(shape);
-        } else if (shape && shape.type == "poly") {
+        } 
+        else if (shape && shape.type == "poly") 
+        {
             drawPolygon(shape);
         }
     }
 
-    if (GC.selector_type == "rectangle")
-        drawRectangle(GC.shapes.rect);
-    if (GC.selector_type == "circle")
-        drawCircle(GC.shapes.circ);
-    if (GC.selector_type == "polygon")
-        drawPolygon(GC.shapes.poly, e, done);
+    if (GC.current_tool == GC.TOOLS.TARGET_RECTANGLE || 
+        GC.current_tool == GC.TOOLS.TARGET_SMART || 
+        GC.current_tool == GC.TOOLS.SELECTION_CURSOR) 
+    {
+        if (GC.current_tool == GC.TOOLS.SELECTION_CURSOR)
+        {
+            ctx.setLineDash([1]);
+            ctx.strokeStyle = "rgb(170, 190, 250)";
+        }
+        drawRectangle(GC.shape);
+    }
+    if (GC.current_tool == GC.TOOLS.TARGET_CIRCLE)
+        drawCircle(GC.shape);
+    if (GC.current_tool == GC.TOOLS.TARGET_POLYGON)
+        drawPolygon(GC.shape, e, done);
 }
 
-function drawRectangle(rect) {
+function drawRectangle(rect) 
+{
     ctx.strokeRect(rect.startX, rect.startY, rect.w, rect.h);
 }
 
-function drawCircle(c) {
+function drawCircle(c) 
+{
     c.rad = Math.sqrt(
             Math.pow(c.midX - c.endX, 2) + Math.pow(c.midY - c.endY, 2)
             );
@@ -326,10 +379,12 @@ function drawCircle(c) {
 function drawPolygon(poly, e, done) {
     ctx.beginPath();
     ctx.moveTo(poly.points[0].x, poly.points[0].y);
-    for (let j = 1; j < poly.points.length; j++) {
+    for (let j = 1; j < poly.points.length; j++) 
+    {
         ctx.lineTo(poly.points[j].x, poly.points[j].y);
     }
-    if (typeof done !== 'undefined' && !done) {
+    if (typeof done !== 'undefined' && !done) 
+    {
         ctx.lineTo(e.pageX, e.pageY);
     }
     ctx.stroke();
@@ -338,10 +393,13 @@ function drawPolygon(poly, e, done) {
 function addMenu(shape) {
     var menu = document.createElement("div");
     menu.style.position = "absolute";
-    if (shape.type && shape.type == "rect") {
+    if (shape.type && shape.type == "rect") 
+    {
         menu.style.left = shape.startX + 10 + "px";
         menu.style.top = shape.startY + "px";
-    } else if (shape.type && shape.type == "circ") {
+    } 
+    else if (shape.type && shape.type == "circ") 
+    {
         menu.style.left =
             shape.midX + shape.rad * Math.cos(45 * (Math.PI / 180)) + "px";
         menu.style.top =
@@ -350,7 +408,9 @@ function addMenu(shape) {
             9.25 -
             4.29 +
             "px";
-    } else if (shape.type && shape.type == "poly") {
+    } 
+    else if (shape.type && shape.type == "poly") 
+    {
         menu.style.left = shape.points[0].x - 4.29 + "px";
         menu.style.top = shape.points[0].y - 9.25 + "px";
         let polygon = [];
@@ -454,7 +514,8 @@ function prepareSave(targets) {
     output.window = win.getBounds();
 
     var not_placed = [];
-    for (i in targets) {
+    for (i in targets) 
+    {
         var menu = targets[i].menu;
         var id = parseInt(menu.getAttribute("data-id"));
         var name = menu.querySelector(".name").value.toLowerCase();
@@ -463,10 +524,12 @@ function prepareSave(targets) {
         var parent = menu
             .querySelector(".childof")
             .selectedOptions[0].value.toLowerCase();
-        if (parent == "parent") {
+        if (parent == "parent") 
+        {
             parent = "root";
         }
-        if (actor == "arcball-reset") {
+        if (actor == "arcball-reset") 
+        {
             type = "helper";
         }
         var temp = JSON.parse(menu.querySelector(".shape").innerHTML);
@@ -474,16 +537,21 @@ function prepareSave(targets) {
         shape.type = temp.type;
 
         let ratio = 1; //window.devicePixelRatio;
-        if (shape.type == "rect") {
+        if (shape.type == "rect") 
+        {
             shape.x = temp.startX * ratio;
             shape.y = temp.startY * ratio;
             shape.width = temp.w * ratio;
             shape.height = temp.h * ratio;
-        } else if (shape.type == "circ") {
+        } 
+        else if (shape.type == "circ") 
+        {
             shape.centerX = temp.midX * ratio;
             shape.centerY = temp.midY * ratio;
             shape.radius = temp.rad * ratio;
-        } else if (shape.type == "poly") {
+        } 
+        else if (shape.type == "poly") 
+        {
             shape.centerX = temp.centerX * ratio;
             shape.centerY = temp.centerY * ratio;
             shape.points = temp.points;
@@ -497,9 +565,12 @@ function prepareSave(targets) {
             parent: parent,
             shape: shape
         };
-        if (parent == "root") {
+        if (parent == "root") 
+        {
             output.children.push(obj);
-        } else {
+        } 
+        else 
+        {
             not_placed.push(obj);
         }
     }
@@ -524,36 +595,47 @@ function prepareSave(targets) {
     return output;
 }
 
+/* 
+ * Handle tool selection 
+ */
 
 function chooseSelector(type) 
 {
-    GC.selector_type = type;    
+    GC.current_tool = type;    
 }
 
 const selector_dropdown_el = document.querySelector(".selector");
 const selector_dropdown = Photon.DropDown(selector_dropdown_el, [
-        {
-            label: "Circle",
-            click: function() { chooseSelector("circle"); }
-        },
-        {
-            label: "Rectangle",
-            click: function() { chooseSelector("rectangle"); }
-        },
-        {
-            label: "Polygon",
-            click: function() { chooseSelector("polygon"); }
-        },
-        {
-            label: "Smart Selection", 
-            click: function() { chooseSelector("smart"); }
-        }
+    {
+        label: "Circle",
+        click: function() { chooseSelector(GC.TOOLS.TARGET_CIRCLE); }
+    },
+    {
+        label: "Rectangle",
+        click: function() { chooseSelector(GC.TOOLS.TARGET_RECTANGLE); }
+    },
+    {
+        label: "Polygon",
+        click: function() { chooseSelector(GC.TOOLS.TARGET_POLYGON); }
+    },
+    {
+        label: "Smart Selection", 
+        click: function() { chooseSelector(GC.TOOLS.TARGET_SMART); }
+    }
 ]);
 
 selector_dropdown.closePopup();
 
 selector_dropdown_el.onclick = function(){
+    loom_selection_cursor_el.classList.remove("active");
     selector_dropdown.popup(); 
 };
+
+const loom_selection_cursor_el = document.querySelector(".loom-selection-cursor");
+loom_selection_cursor_el.onclick = function()
+{
+    chooseSelector(GC.TOOLS.SELECTION_CURSOR);   
+    this.classList.toggle("active");
+}
 
 init();
