@@ -20,25 +20,31 @@ GC.shapes = {}; // temporary shapes for drawing
 
 win.removeAllListeners();
 
-var interactor = null;
+var interactor = null; // the external interactor process 
 
+// Set up Mustache templates
 var template = document.getElementById("tmpl-menu").innerHTML;
 Mustache.parse(template);
 var stats_template = document.getElementById("tmpl-stats").innerHTML;
 Mustache.parse(stats_template);
 
+// Set up the canvas
 var canvas = document.getElementById("canvas");
 canvas.width = document.body.clientWidth;
 canvas.height = document.body.clientHeight - 15;
-
-targets = []; // all targets in a list
 var ctx = canvas.getContext("2d");
+
+// Set up the global context
+targets = []; // all targets in a list
 GC.shapes.rect = null; // global temp rectangle for dragging and drawing rectangles
 GC.shapes.circ = null;
 GC.shapes.poly = null;
 GC.target_counter = 0; // used as a unique identifier for the target IDs
 GC.drag = false;
 
+/*
+ * Executes an external process
+ */
 function execute(command, callback) {
     window.data = "";
     let spawn = require("child_process").spawn;
@@ -56,7 +62,9 @@ function execute(command, callback) {
     });
 }
 
-// setup the menu
+/* 
+ * Sets up the application menu
+ */
 var menu = Menu.buildFromTemplate([
         {
             label: "Menu",
@@ -180,11 +188,6 @@ function init() {
     canvas.addEventListener("mousemove", mouseMove, false);
 
     var win = electron.remote.getCurrentWindow();
-    win.on("move", function () {
-        setStats();
-    });
-
-    setStats();
 
     win.on("resize", function () {
         let dimensions = win.getBounds();
@@ -193,15 +196,6 @@ function init() {
         draw();
     });
 
-}
-
-function setStats() {
-    var stats = document.getElementById("stats-render");
-    var position = win.getPosition();
-    stats.innerHTML = Mustache.render(stats_template, {
-        x: position[0],
-        y: position[1]
-    });
 }
 
 function mouseDown(e) {
