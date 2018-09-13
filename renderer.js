@@ -15,10 +15,29 @@ const desktopCapturer = electron.desktopCapturer;
 const electronScreen = electron.screen;
 const Photon = require("electron-photon");
 
+var GC = {}; // The global context; 
+GC.shapes = {}; // temporary shapes for drawing
+
 win.removeAllListeners();
 
 var interactor = null;
-var selection = "Rectangle";
+
+var template = document.getElementById("tmpl-menu").innerHTML;
+Mustache.parse(template);
+var stats_template = document.getElementById("tmpl-stats").innerHTML;
+Mustache.parse(stats_template);
+
+var canvas = document.getElementById("canvas");
+canvas.width = document.body.clientWidth;
+canvas.height = document.body.clientHeight - 15;
+
+targets = []; // all targets in a list
+var ctx = canvas.getContext("2d");
+GC.shapes.rect = null; // global temp rectangle for dragging and drawing rectangles
+GC.shapes.circ = null;
+GC.shapes.poly = null;
+GC.target_counter = 0; // used as a unique identifier for the target IDs
+GC.drag = false;
 
 function execute(command, callback) {
     window.data = "";
@@ -154,22 +173,6 @@ var menu = Menu.buildFromTemplate([
 ]);
 Menu.setApplicationMenu(menu);
 
-var template = document.getElementById("tmpl-menu").innerHTML;
-Mustache.parse(template);
-var stats_template = document.getElementById("tmpl-stats").innerHTML;
-Mustache.parse(stats_template);
-
-var canvas = document.getElementById("canvas");
-canvas.width = document.body.clientWidth;
-canvas.height = document.body.clientHeight - 15;
-
-targets = []; // all targets in a list
-var ctx = canvas.getContext("2d"),
-    rect = null, // global temp rectangle for dragging and drawing rectangles
-    circ = null,
-    poly = null,
-    target_counter = 0, // used as a unique identifier for the target IDs
-    drag = false;
 
 function init() {
     canvas.addEventListener("mousedown", mouseDown, false);
@@ -182,9 +185,6 @@ function init() {
     });
 
     setStats();
-    document
-        .getElementById("shape-selection")
-        .addEventListener("change", selectionChange);
 
     win.on("resize", function () {
         let dimensions = win.getBounds();
@@ -204,81 +204,90 @@ function setStats() {
     });
 }
 
-function selectionChange() {
-    selection = document.getElementById("shape-selection").value;
-}
-
 function mouseDown(e) {
-    if (selection == "Rectangle") {
-        rect = { type: "rect" };
-        rect.startX = e.pageX - this.offsetLeft;
-        rect.startY = e.pageY - this.offsetTop;
-        drag = true;
-    } else if (selection == "Circle") {
-        circ = { type: "circ" };
-        circ.startX = e.pageX - this.offsetLeft;
-        circ.startY = e.pageY - this.offsetTop;
-        drag = true;
-    } else if (selection == "Polygon") {
-        if (poly == null) {
-            poly = { type: "poly" };
-            poly.points = [];
+    if (GC.selector_type == "rectangle") 
+    {
+        GC.shapes.rect = { type: "rect" };
+        GC.shapes.rect.startX = e.pageX - this.offsetLeft;
+        GC.shapes.rect.startY = e.pageY - this.offsetTop;
+        GC.drag = true;
+    } 
+    else if (GC.selector_type == "circle") 
+    {
+        GC.shapes.circ = { type: "circ" };
+        GC.shapes.circ.startX = e.pageX - this.offsetLeft;
+        GC.shapes.circ.startY = e.pageY - this.offsetTop;
+        GC.drag = true;
+    } 
+    else if (GC.selector_type == "polygon") 
+    {
+        if (GC.shapes.poly == null) {
+            GC.shapes.poly = { type: "poly" };
+            GC.shapes.poly.points = [];
         }
         let point = { x: e.pageX - this.offsetLeft, y: e.pageY - this.offsetTop };
-        if (poly.points[0]) {
+        if (GC.shapes.poly.points[0]) {
             if (
-                    Math.abs(point.x - poly.points[0].x) <= 10 &&
-                    Math.abs(point.y - poly.points[0].y) <= 10
+                    Math.abs(point.x - GC.shapes.poly.points[0].x) <= 10 &&
+                    Math.abs(point.y - GC.shapes.poly.points[0].y) <= 10
                ) {
-                point.x = poly.points[0].x;
-                point.y = poly.points[0].y;
-                poly.points.push(point);
+                point.x = GC.shapes.poly.points[0].x;
+                point.y = GC.shapes.poly.points[0].y;
+                GC.shapes.poly.points.push(point);
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 draw(e, true);
-                addMenu(JSON.parse(JSON.stringify(poly)));
-                drag = false;
-                poly = null;
+                addMenu(JSON.parse(JSON.stringify(GC.shapes.poly)));
+                GC.drag = false;
+                GC.shapes.poly = null;
                 return;
             }
         }
-        poly.points.push(point);
-        drag = true;
+        GC.shapes.poly.points.push(point);
+        GC.drag = true;
     }
 }
 
 function mouseUp(e) {
-    if (selection !== "Polygon") drag = false;
-    if (selection == "Rectangle") {
-        if (typeof rect.w == 'undefined' || typeof rect.h == 'undefined' || (rect.w == 0 && rect.h == 0)) return;
-        addMenu(JSON.parse(JSON.stringify(rect)));
-    } else if (selection == "Circle") {
-        if (
-                Math.abs(circ.startX - circ.endX) <= 7 ||
-                Math.abs(circ.startY - circ.endY) <= 7
-           )
+    if (GC.selector_type !== "polygon") GC.drag = false;
+    if (GC.selector_type == "rectangle") 
+    {
+        if (typeof GC.shapes.rect.w == 'undefined' 
+                || typeof GC.shapes.rect.h == 'undefined' 
+                || (GC.shapes.rect.w == 0 && GC.shapes.rect.h == 0)) 
             return;
-        addMenu(JSON.parse(JSON.stringify(circ)));
+        addMenu(JSON.parse(JSON.stringify(GC.shapes.rect)));
+    } 
+    else if (GC.selector_type == "circle") 
+    {
+        if (Math.abs(GC.shapes.circ.startX - GC.shapes.circ.endX) <= 7 
+                || Math.abs(GC.shapes.circ.startY - GC.shapes.circ.endY) <= 7)
+            return;
+        addMenu(JSON.parse(JSON.stringify(GC.shapes.circ)));
     }
-    rect = null;
-    circ = null;
+    GC.shapes.rect = null;
+    GC.shapes.circ = null;
     //ctx.clearRect(0,0,canvas.width,canvas.height);
 }
 
 function mouseMove(e) {
-    if (drag) {
-        if (selection == "Rectangle") {
-            rect.w = e.pageX - this.offsetLeft - rect.startX;
-            rect.h = e.pageY - this.offsetTop - rect.startY;
+    if (GC.drag) {
+        if (GC.selector_type == "rectangle") {
+            GC.shapes.rect.w = e.pageX - this.offsetLeft - GC.shapes.rect.startX;
+            GC.shapes.rect.h = e.pageY - this.offsetTop - GC.shapes.rect.startY;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             draw();
-        } else if (selection == "Circle") {
-            circ.endX = e.pageX - this.offsetLeft;
-            circ.endY = e.pageY - this.offsetTop;
-            circ.midX = (circ.endX - circ.startX) / 2 + circ.startX;
-            circ.midY = (circ.endY - circ.startY) / 2 + circ.startY;
+        } 
+        else if (GC.selector_type == "circle") 
+        {
+            GC.shapes.circ.endX = e.pageX - this.offsetLeft;
+            GC.shapes.circ.endY = e.pageY - this.offsetTop;
+            GC.shapes.circ.midX = (GC.shapes.circ.endX - GC.shapes.circ.startX) / 2 + GC.shapes.circ.startX;
+            GC.shapes.circ.midY = (GC.shapes.circ.endY - GC.shapes.circ.startY) / 2 + GC.shapes.circ.startY;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             draw();
-        } else if (selection == "Polygon") {
+        } 
+        else if (GC.selector_type == "polygon") 
+        {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             draw(e, false);
         }
@@ -299,9 +308,12 @@ function draw(e, done) {
         }
     }
 
-    if (rect !== null) drawRectangle(rect);
-    if (circ !== null) drawCircle(circ);
-    if (poly !== null) drawPolygon(poly, e, done);
+    if (GC.selector_type == "rectangle")
+        drawRectangle(GC.shapes.rect);
+    if (GC.selector_type == "circle")
+        drawCircle(GC.shapes.circ);
+    if (GC.selector_type == "polygon")
+        drawPolygon(GC.shapes.poly, e, done);
 }
 
 function drawRectangle(rect) {
@@ -358,7 +370,7 @@ function addMenu(shape) {
     menu.style.zIndex = 10000;
     menu.classList.add("menu");
 
-    let id = target_counter++;
+    let id = GC.target_counter++;
     menu.setAttribute("data-id", id);
     menu.innerHTML = Mustache.render(template, { shape: JSON.stringify(shape) });
     menu.querySelector(".showhide").addEventListener("click", function () {
@@ -519,32 +531,34 @@ function prepareSave(targets) {
 }
 
 
-const myButton = document.querySelector(".selector"); // Get your button here
-const selector_dropdown = Photon.DropDown(myButton, [
+function chooseSelector(type) 
+{
+    GC.selector_type = type;    
+}
+
+const selector_dropdown_el = document.querySelector(".selector");
+const selector_dropdown = Photon.DropDown(selector_dropdown_el, [
         {
-            label: "Item 1",
-            submenu: [
-            {
-                label: "Sub Item 1.1",
-                click: function() {
-                    console.log("Clicked Sub Item 1.1");
-                }
-            }
-            ]
+            label: "Circle",
+            click: function() { chooseSelector("circle"); }
         },
         {
-            label: "Item 2",
-            submenu: [
-            {
-                label: "Sub Item 2.1"
-            }
-            ]
+            label: "Rectangle",
+            click: function() { chooseSelector("rectangle"); }
+        },
+        {
+            label: "Polygon",
+            click: function() { chooseSelector("polygon"); }
+        },
+        {
+            label: "Smart Selection", 
+            click: function() { chooseSelector("smart"); }
         }
 ]);
+
 selector_dropdown.closePopup();
 
-myButton.onclick = function(){
-    console.log("fdfa");
+selector_dropdown_el.onclick = function(){
     selector_dropdown.popup(); 
 };
 
