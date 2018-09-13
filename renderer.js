@@ -13,6 +13,7 @@ const MenuItem = electron.remote.MenuItem;
 const win = electron.remote.getCurrentWindow();
 const desktopCapturer = electron.desktopCapturer;
 const electronScreen = electron.screen;
+const Photon = require("electron-photon");
 
 win.removeAllListeners();
 
@@ -81,7 +82,8 @@ var menu = Menu.buildFromTemplate([
                                                 interactor = execute(cmd, function(code, output) {
                                                     polygons = JSON.parse(output);
                                                     for (var i in polygons) {
-                                                        drawPolygon(polygons[i]);
+                                                        var shape = {points: polygons[i].points, type: "poly"};
+                                                        addMenu(shape);
                                                     }
                                                 });
                                             }
@@ -190,6 +192,7 @@ function init() {
         canvas.height = dimensions.height - 15;
         draw();
     });
+
 }
 
 function setStats() {
@@ -260,6 +263,7 @@ function mouseUp(e) {
     circ = null;
     //ctx.clearRect(0,0,canvas.width,canvas.height);
 }
+
 function mouseMove(e) {
     if (drag) {
         if (selection == "Rectangle") {
@@ -513,5 +517,35 @@ function prepareSave(targets) {
 
     return output;
 }
+
+
+const myButton = document.querySelector(".selector"); // Get your button here
+const selector_dropdown = Photon.DropDown(myButton, [
+        {
+            label: "Item 1",
+            submenu: [
+            {
+                label: "Sub Item 1.1",
+                click: function() {
+                    console.log("Clicked Sub Item 1.1");
+                }
+            }
+            ]
+        },
+        {
+            label: "Item 2",
+            submenu: [
+            {
+                label: "Sub Item 2.1"
+            }
+            ]
+        }
+]);
+selector_dropdown.closePopup();
+
+myButton.onclick = function(){
+    console.log("fdfa");
+    selector_dropdown.popup(); 
+};
 
 init();

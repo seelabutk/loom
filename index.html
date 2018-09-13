@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html style="height: 100%">
-  <head>
-    <meta charset="UTF-8">
-    <title>Loom</title>
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css" rel="stylesheet">
-    <link href="css/style.css" type="text/css" rel="stylesheet">
+    <head>
+        <meta charset="UTF-8">
+        <title>Loom</title>
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css" rel="stylesheet">
+        <link href="css/style.css" type="text/css" rel="stylesheet">
 
-    <script type="x-tmpl-mustache" id="tmpl-menu">
-        <i class="fa fa-cog showhide" aria-hidden="true"></i>
+        <script type="x-tmpl-mustache" id="tmpl-menu">
+<i class="fa fa-cog showhide" aria-hidden="true"></i>
         <i class="fa fa-trash remove setting hide" aria-hidden="true"></i>
         <input type="text" class='name setting hide'>        
         <select class='childof setting hide'>
@@ -29,36 +29,84 @@
             <option>Slider</option>
         </select>
         <div class='shape'>{{shape}}</div>
-    </script>
+        </script>
 
-    <script type="x-tmpl-mustache" id="tmpl-stats">
-        <i class="fa fa-arrows" aria-hidden="true"></i> 
+        <script type="x-tmpl-mustache" id="tmpl-stats">
+<i class="fa fa-arrows" aria-hidden="true"></i> 
         X: {{x}}, Y: {{y}}
-    </script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <canvas id="canvas" width="100" height="100"></canvas>
-    <div id='stats'>
-      <div id='stats-render'></div>
-      <div id='stats-norender'>
-        <select id='shape-selection'>
-          <option>
-            Circle
-          </option>
-          <option selected>
-            Rectangle
-          </option>
-          <option>
-            Polygon
-          </option>
-        </select>
-        Screenshot Delay: <input type='text' id='delay'>ms
-      </div>
-    </div>
-    <script>
-      // You can also require other files to run in this process
-      require('./renderer.js')
-    </script>
-  </body>
+        </script>
+    </head>
+    <body>
+
+        <ph-window>
+        <div id="root"></div>
+        <canvas id="canvas" width="100" height="100"></canvas>
+
+        <tool-bar type="footer" id='stats' class="toolbar toolbar-footer">
+            <!--<div id='stats-render'></div>-->
+            <!--<div id='stats-norender'>
+                <select id='shape-selection'>
+                    <option>
+                    Circle
+                    </option>
+                    <option selected>
+                    Rectangle
+                    </option>
+                    <option>
+                    Polygon
+                    </option>
+                </select>
+                Screenshot Delay: <input type='text' id='delay'>ms
+            </div>
+            -->
+
+			<tab-group>
+				<tab-item type="fixed">
+					Workspace 1
+				</tab-item>
+				<tab-item>
+					<button action="close"></button>
+                    Workspace 2 
+				</tab-item>
+                <tab-item type="fixed" action="add"></tab-item>
+			</tab-group>
+ 
+
+            <div class="toolbar-actions">
+                <div class="btn-group">
+                    <button class="btn btn-default">
+                        <span class="icon icon-doc-landscape"></span>
+                    </button>
+                    <button class="btn btn-default">
+                        <span class="icon icon-pencil"></span>
+                    </button>
+                    <button class="btn btn-default active">
+                        <span class="icon icon-cloud"></span>
+                    </button>
+                    <button class="btn btn-default">
+                        <span class="icon icon-popup"></span>
+                    </button>
+                    <button class="btn btn-default">
+                        <span class="icon icon-shuffle"></span>
+                    </button>
+                </div>
+
+                <button class="btn btn-default">
+                    <span class="icon icon-home icon-text"></span>
+                    Filters
+                </button>
+
+                <button class="selector btn btn-default btn-dropdown pull-right">
+                    <span class="icon icon-pencil"></span>
+                </button>
+            </div>
+
+        </tool-bar>
+        <script>
+// You can also require other files to run in this process
+require('./renderer.js')
+        </script>
+        </ph-window>
+    </body>
+
 </html>
