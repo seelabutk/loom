@@ -14,6 +14,9 @@ const desktopCapturer = electron.desktopCapturer;
 const electronScreen = electron.screen;
 const Photon = require("electron-photon");
 
+// from LOA's codebase 
+const saver = require('./saver.js');
+
 win.removeAllListeners();
 
 /* 
@@ -93,7 +96,7 @@ var menu = Menu.buildFromTemplate([
                 click: function () {
                     fs.writeFile(
                             "./viewer/config.json",
-                            JSON.stringify(prepareSave(targets)),
+                            JSON.stringify(saver.save(targets)),
                             () => { }
                             );
                 }
@@ -327,6 +330,8 @@ function mouseMove(e) {
 function draw(e, done) {
     ctx.setLineDash([6]);
     ctx.strokeStyle = "rgb(200, 200, 200)";
+
+    // render all targets
     for (var i in targets) 
     {
         let shape = targets[i].shape;
@@ -344,6 +349,7 @@ function draw(e, done) {
         }
     }
 
+    // now render the new tool/target
     if (GC.current_tool == GC.TOOLS.TARGET_RECTANGLE || 
         GC.current_tool == GC.TOOLS.TARGET_SMART || 
         GC.current_tool == GC.TOOLS.SELECTION_CURSOR) 
@@ -390,6 +396,10 @@ function drawPolygon(poly, e, done) {
     ctx.stroke();
 }
 
+
+// should be renamed to addTarget
+// a single menu should always exist albeit hidden in the toolbar
+//
 function addMenu(shape) {
     var menu = document.createElement("div");
     menu.style.position = "absolute";
@@ -506,94 +516,6 @@ search = function (obj, name) {
     return null;
 };
 
-function prepareSave(targets) {
-    var output = {};
-    output.id = -1;
-    output.name = "root";
-    output.children = [];
-    output.window = win.getBounds();
-
-    var not_placed = [];
-    for (i in targets) 
-    {
-        var menu = targets[i].menu;
-        var id = parseInt(menu.getAttribute("data-id"));
-        var name = menu.querySelector(".name").value.toLowerCase();
-        var type = "linear"; //menu.querySelector(".type").value.toLowerCase();
-        var actor = menu.querySelector(".actor").value.toLowerCase();
-        var parent = menu
-            .querySelector(".childof")
-            .selectedOptions[0].value.toLowerCase();
-        if (parent == "parent") 
-        {
-            parent = "root";
-        }
-        if (actor == "arcball-reset") 
-        {
-            type = "helper";
-        }
-        var temp = JSON.parse(menu.querySelector(".shape").innerHTML);
-        var shape = {};
-        shape.type = temp.type;
-
-        let ratio = 1; //window.devicePixelRatio;
-        if (shape.type == "rect") 
-        {
-            shape.x = temp.startX * ratio;
-            shape.y = temp.startY * ratio;
-            shape.width = temp.w * ratio;
-            shape.height = temp.h * ratio;
-        } 
-        else if (shape.type == "circ") 
-        {
-            shape.centerX = temp.midX * ratio;
-            shape.centerY = temp.midY * ratio;
-            shape.radius = temp.rad * ratio;
-        } 
-        else if (shape.type == "poly") 
-        {
-            shape.centerX = temp.centerX * ratio;
-            shape.centerY = temp.centerY * ratio;
-            shape.points = temp.points;
-        }
-
-        var obj = {
-            id: id,
-            name: name,
-            type: type,
-            actor: actor,
-            parent: parent,
-            shape: shape
-        };
-        if (parent == "root") 
-        {
-            output.children.push(obj);
-        } 
-        else 
-        {
-            not_placed.push(obj);
-        }
-    }
-
-    while (not_placed.length > 0) {
-        for (var i = 0; i < not_placed.length; i++) {
-            var found_parent = search(output, not_placed[i].parent);
-            if (found_parent != null) {
-                if (found_parent.children === undefined) {
-                    found_parent.children = [];
-                }
-                // found_parent has children, set its type to parallel for now
-                found_parent.type = "parallel";
-
-                found_parent.children.push(not_placed[i]);
-                not_placed.splice(i, 1);
-                break;
-            }
-        }
-    }
-
-    return output;
-}
 
 /* 
  * Handle tool selection 
@@ -604,7 +526,7 @@ function chooseSelector(type)
     GC.current_tool = type;    
 }
 
-const selector_dropdown_el = document.querySelector(".selector");
+const selector_dropdown_el = document.querySelector(".loom-tool-selector");
 const selector_dropdown = Photon.DropDown(selector_dropdown_el, [
     {
         label: "Circle",

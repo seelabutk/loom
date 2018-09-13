@@ -12,6 +12,12 @@ ph-window
 {
     background-color: rgba(0, 0, 0, 0.3) !important;
 }
+
+.loom-tool-selector
+{
+    border-radius: 4.5px !important;
+}
+
 #stats
 {
     position: absolute;
