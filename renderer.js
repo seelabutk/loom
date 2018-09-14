@@ -60,6 +60,7 @@ GC.target_counter = 0; // used as a unique identifier for the target IDs
 GC.drag = false;
 GC.current_tool = GC.TOOLS.SELECTION_CURSOR;
 GC.selected_targets = [];
+GC.target_options_el = document.querySelector(".loom-target-options");
 
 /*
  * Executes an external process
@@ -346,6 +347,27 @@ function shapeIsSelected(shape)
     return false;
 }
 
+function selectOption(element, value)
+{
+    for (var i = 0; i < element.options.length; i++)
+    {
+        if (element.options[i].value == value)
+        {
+            element.selectedIndex = i;
+        }
+    }
+}
+
+function selectTarget(target)
+{
+    GC.selected_targets.push(target);
+    GC.target_options_el.setAttribute("data-id", target.id);
+    GC.target_options_el.querySelector(".name").value = target.name;
+    selectOption(GC.target_options_el.querySelector(".childof"), target.childof);
+    selectOption(GC.target_options_el.querySelector(".type"), target.type);
+    selectOption(GC.target_options_el.querySelector(".actor"), target.actor);
+}
+
 function draw(e, done, draw_selection) {
     ctx.setLineDash([6]);
     ctx.strokeStyle = "rgb(200, 200, 200)";
@@ -360,7 +382,7 @@ function draw(e, done, draw_selection) {
         if (GC.current_tool == GC.TOOLS.SELECTION_CURSOR && shapeIsSelected(shape))
         {
             ctx.strokeStyle = "rgb(255, 100, 100)";
-            GC.selected_targets.push(targets[i]);
+            selectTarget(targets[i]);
         }
         else
         {
@@ -523,13 +545,13 @@ loom_selection_cursor_el.onclick = function()
  * Set up event handlers for the target option form
  */
 
-/*
-menu.querySelector(".remove").addEventListener("click", function () {
-    let id = parseInt(menu.getAttribute("data-id"));
-    for (i in targets) {
-        if (targets[i].id == id) {
+GC.target_options_el.querySelector(".remove").addEventListener("click", function () {
+    let id = parseInt(GC.target_options_el.getAttribute("data-id"));
+    for (i in targets) 
+    {
+        if (targets[i].id == id) 
+        {
             targets.splice(i, 1);
-            menu.remove();
             break;
         }
     }
@@ -537,7 +559,7 @@ menu.querySelector(".remove").addEventListener("click", function () {
     draw();
 });
 
-menu.querySelector(".childof").addEventListener("focus", function () {
+GC.target_options_el.querySelector(".childof").addEventListener("focus", function () {
     // remove all current options
     while (this.options.length > 0) {
         this.options.remove(0);
@@ -547,25 +569,66 @@ menu.querySelector(".childof").addEventListener("focus", function () {
     option.innerHTML = "Parent";
     this.options.add(option);
     let id = parseInt(this.parentNode.getAttribute("data-id"));
-    for (i in targets) {
+    for (i in targets) 
+    {
         let target = targets[i];
-        if (target.id != id) {
+        //if (target.id != id) 
+        {
             let option = document.createElement("option");
             option.innerHTML = target.name;
+            option.value = target.name;
             this.options.add(option);
         }
     }
 });
 
-menu.querySelector(".name").addEventListener("change", function () {
+GC.target_options_el.querySelector(".name").addEventListener("change", function () {
     let id = parseInt(this.parentNode.getAttribute("data-id"));
-    for (var i in targets) {
+    for (var i in targets) 
+    {
         let target = targets[i];
-        if (target.id == id) {
+        if (target.id == id) 
+        {
             target.name = this.value;
         }
-
     }
-});*/
+});
+
+GC.target_options_el.querySelector(".childof").addEventListener("change", function (e) {
+    let id = parseInt(this.parentNode.getAttribute("data-id"));
+    for (var i in targets) 
+    {
+        let target = targets[i];
+        if (target.id == id) 
+        {
+            target.childof = e.target.options[e.target.selectedIndex].value;
+        }
+    }
+});
+
+GC.target_options_el.querySelector(".type").addEventListener("change", function (e) {
+    let id = parseInt(this.parentNode.getAttribute("data-id"));
+    for (var i in targets) 
+    {
+        let target = targets[i];
+        if (target.id == id) 
+        {
+            target.type = e.target.options[e.target.selectedIndex].value;
+        }
+    }
+});
+
+GC.target_options_el.querySelector(".actor").addEventListener("change", function (e) {
+    let id = parseInt(this.parentNode.getAttribute("data-id"));
+    for (var i in targets) 
+    {
+        let target = targets[i];
+        if (target.id == id) 
+        {
+            target.actor = e.target.options[e.target.selectedIndex].value;
+        }
+    }
+});
 
 init();
+

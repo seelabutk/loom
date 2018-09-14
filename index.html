@@ -19,22 +19,7 @@
         <canvas id="canvas" width="100" height="100"></canvas>
 
         <tool-bar type="footer" id='stats' class="toolbar toolbar-footer">
-            <!--<div id='stats-render'></div>-->
-            <!--<div id='stats-norender'>
-                <select id='shape-selection'>
-                    <option>
-                    Circle
-                    </option>
-                    <option selected>
-                    Rectangle
-                    </option>
-                    <option>
-                    Polygon
-                    </option>
-                </select>
-                Screenshot Delay: <input type='text' id='delay'>ms
-            </div>
-            -->
+            <!--Screenshot Delay: <input type='text' id='delay'>ms-->
 
 			<tab-group>
 				<tab-item>
@@ -73,19 +58,19 @@
                         <option>Parent</option>
                     </select>
                     <select class='type setting'>
-                        <option>Type</option>
-                        <option>Linear</option>
-                        <option>Parallel</option>
-                        <option>Orthogonal</option>
-                        <option>Helper</option>
+                        <option value="Type">Type</option>
+                        <option value="Linear">Linear</option>
+                        <option value="Parallel">Parallel</option>
+                        <option value="Orthogonal">Orthogonal</option>
+                        <option value="Helper">Helper</option>
                     </select>
                     <select class='actor setting'>
-                        <option>Action</option>
-                        <option>Arcball</option>
-                        <option>Arcball-reset</option>
-                        <option>Button</option>
-                        <option>Hover</option>
-                        <option>Slider</option>
+                        <option value="Action">Action</option>
+                        <option value="Arcball">Arcball</option>
+                        <option value="Arcball-reset">Arcball-reset</option>
+                        <option value="Button">Button</option>
+                        <option value="Hover">Hover</option>
+                        <option value="Slider">Slider</option>
                     </select>
                     <i class="fa fa-trash remove setting" aria-hidden="true"></i>
                 </div>
