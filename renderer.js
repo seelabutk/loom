@@ -110,7 +110,9 @@ var menu = Menu.buildFromTemplate([
                     let options = { types: ['screen'], thumbnailSize: screen_size };
                     desktopCapturer.getSources(options, function (error, sources) {
                         if (error) console.log(error);
-                        sources.forEach(saveScreenshot);
+                        sources.forEach(function(source){
+                            handleScreenshot(source, bounds);
+                        });
                     });
                     win.setOpacity(1);
                 }
@@ -174,7 +176,7 @@ var menu = Menu.buildFromTemplate([
 ]);
 Menu.setApplicationMenu(menu);
 
-function saveScreenshot(source)
+function handleScreenshot(source, bounds)
 {
 
     if (source.name === 'Entire screen' || source.name === 'Screen 1') {
@@ -191,7 +193,7 @@ function saveScreenshot(source)
                 let cmd = "python segment.py screenshot.png";
                 interactor = execute(cmd, function(code, output) {
                     polygons = JSON.parse(output);
-                    for (var i in polygons) {
+                    for (var i = 0; i < polygons.length; i++) {
                         var shape = {points: polygons[i].points, type: "poly"};
                         addTarget(shape);
                     }
@@ -359,7 +361,7 @@ function shapeIsSelected(shape)
     }
     if (GC.shape && shape && shape.type == "poly")
     {
-        for (var i in shape.points)
+        for (var i = 0; i < shape.points.length; i++)
         {
             if (shape.points[i].x <= GC.shape.startX ||
                 shape.points[i].y <= GC.shape.startY ||
@@ -401,7 +403,7 @@ function draw(e, done, draw_selection) {
 
     GC.selected_targets = [];
     // render all targets
-    for (var i in targets) 
+    for (var i = 0; i < targets.length; i++) 
     {
         let shape = targets[i].shape;
 
@@ -498,6 +500,10 @@ function drawPolygon(poly, e, done) {
 // a single menu should always exist albeit hidden in the toolbar
 //
 function addTarget(shape) {
+    // Make sure the shape is correctly formatted
+    if (shape && shape.type && shape.type == "poly" && typeof(shape.points) == 'undefined')
+        return false;
+
     let id = GC.target_counter++;
 
     var target = { id: id, shape: shape };
@@ -582,13 +588,15 @@ loom_selection_cursor_el.onclick = function()
  */
 
 GC.target_options_el.querySelector(".remove").addEventListener("click", function () {
-    let id = parseInt(GC.target_options_el.getAttribute("data-id"));
-    for (i in targets) 
+    for (var j = 0; j < GC.selected_targets.length; j++)
     {
-        if (targets[i].id == id) 
+        for (var i = 0; i < targets.length; i++) 
         {
-            targets.splice(i, 1);
-            break;
+            if (targets[i].id == GC.selected_targets[j].id) 
+            {
+                targets.splice(i, 1);
+                break;
+            }
         }
     }
     document.querySelector(".loom-target-options").classList.add("hide");
@@ -621,7 +629,7 @@ GC.target_options_el.querySelector(".childof").addEventListener("focus", functio
 
 GC.target_options_el.querySelector(".name").addEventListener("change", function () {
     let id = parseInt(this.parentNode.getAttribute("data-id"));
-    for (var i in targets) 
+    for (var i = 0; i < targets.length; i++) 
     {
         let target = targets[i];
         if (target.id == id) 
@@ -633,7 +641,7 @@ GC.target_options_el.querySelector(".name").addEventListener("change", function 
 
 GC.target_options_el.querySelector(".childof").addEventListener("change", function (e) {
     let id = parseInt(this.parentNode.getAttribute("data-id"));
-    for (var i in targets) 
+    for (var i = 0; i < targets.length; i++) 
     {
         let target = targets[i];
         if (target.id == id) 
@@ -645,7 +653,7 @@ GC.target_options_el.querySelector(".childof").addEventListener("change", functi
 
 GC.target_options_el.querySelector(".type").addEventListener("change", function (e) {
     let id = parseInt(this.parentNode.getAttribute("data-id"));
-    for (var i in targets) 
+    for (var i = 0; i < targets.length; i++) 
     {
         let target = targets[i];
         if (target.id == id) 
@@ -657,7 +665,7 @@ GC.target_options_el.querySelector(".type").addEventListener("change", function 
 
 GC.target_options_el.querySelector(".actor").addEventListener("change", function (e) {
     let id = parseInt(this.parentNode.getAttribute("data-id"));
-    for (var i in targets) 
+    for (var i = 0; i < targets.length; i++) 
     {
         let target = targets[i];
         if (target.id == id) 
