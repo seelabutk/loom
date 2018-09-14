@@ -347,6 +347,30 @@ function shapeIsSelected(shape)
             return true;
         }
     }
+    if (GC.shape && shape && shape.type == "circ")
+    {
+        if (GC.shape.startX <= shape.startX &&
+            GC.shape.startY <= shape.startY &&
+            (GC.shape.startX + GC.shape.w) >= shape.endX &&
+            (GC.shape.startY + GC.shape.h) >= shape.endY)
+        {
+            return true;
+        }
+    }
+    if (GC.shape && shape && shape.type == "poly")
+    {
+        for (var i in shape.points)
+        {
+            if (shape.points[i].x <= GC.shape.startX ||
+                shape.points[i].y <= GC.shape.startY ||
+                shape.points[i].x >= (GC.shape.startX + GC.shape.w) ||
+                shape.points[i].y >= (GC.shape.startY + GC.shape.h))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
     return false;
 }
 
