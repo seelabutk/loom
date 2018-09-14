@@ -426,6 +426,15 @@ function draw(e, done, draw_selection) {
         drawCircle(GC.shape);
     if (GC.current_tool == GC.TOOLS.TARGET_POLYGON)
         drawPolygon(GC.shape, e, done);
+
+    if (GC.selected_targets.length == 0)
+    {
+        document.querySelector(".loom-target-options").classList.add("hide");
+    }
+    else
+    {
+        document.querySelector(".loom-target-options").classList.remove("hide");
+    }
 }
 
 function drawRectangle(rect) 
@@ -555,6 +564,7 @@ GC.target_options_el.querySelector(".remove").addEventListener("click", function
             break;
         }
     }
+    document.querySelector(".loom-target-options").classList.add("hide");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     draw();
 });
