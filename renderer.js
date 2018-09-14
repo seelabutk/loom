@@ -110,30 +110,7 @@ var menu = Menu.buildFromTemplate([
                     let options = { types: ['screen'], thumbnailSize: screen_size };
                     desktopCapturer.getSources(options, function (error, sources) {
                         if (error) console.log(error);
-                        sources.forEach(function (source) {
-                            if (source.name === 'Entire screen' || source.name === 'Screen 1') {
-                                const screenshotPath = './screenshot.png';
-
-                                let img = source.thumbnail.crop(bounds);
-                                fs.writeFile(screenshotPath, img.toPng(), 
-                                        function (error) {
-                                            if (error) {
-                                                console.log(error);
-                                            }
-                                            else {
-                                                let cmd = "python segment.py screenshot.png";
-                                                interactor = execute(cmd, function(code, output) {
-                                                    polygons = JSON.parse(output);
-                                                    for (var i in polygons) {
-                                                        var shape = {points: polygons[i].points, type: "poly"};
-                                                        addTarget(shape);
-                                                    }
-                                                });
-                                            }
-                                        }
-                                        );
-                            }
-                        });
+                        sources.forEach(saveScreenshot);
                     });
                     win.setOpacity(1);
                 }
@@ -197,6 +174,32 @@ var menu = Menu.buildFromTemplate([
 ]);
 Menu.setApplicationMenu(menu);
 
+function saveScreenshot(source)
+{
+
+    if (source.name === 'Entire screen' || source.name === 'Screen 1') {
+        const screenshotPath = './screenshot.png';
+
+        let img = source.thumbnail.crop(bounds);
+        fs.writeFile(screenshotPath, img.toPng(), function (error) {
+            if (error) 
+            {
+                console.log(error);
+            }
+            else 
+            {
+                let cmd = "python segment.py screenshot.png";
+                interactor = execute(cmd, function(code, output) {
+                    polygons = JSON.parse(output);
+                    for (var i in polygons) {
+                        var shape = {points: polygons[i].points, type: "poly"};
+                        addTarget(shape);
+                    }
+                });
+            }
+        });
+    }
+}
 
 function init() {
     canvas.addEventListener("mousedown", mouseDown, false);
