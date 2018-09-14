@@ -628,49 +628,57 @@ GC.target_options_el.querySelector(".childof").addEventListener("focus", functio
 });
 
 GC.target_options_el.querySelector(".name").addEventListener("change", function () {
-    let id = parseInt(this.parentNode.getAttribute("data-id"));
-    for (var i = 0; i < targets.length; i++) 
+    for (var j = 0; j < GC.selected_targets.length; j++)
     {
-        let target = targets[i];
-        if (target.id == id) 
+        for (var i = 0; i < targets.length; i++) 
         {
-            target.name = this.value;
+            let target = targets[i];
+            if (target.id == GC.selected_targets[j].id) 
+            {
+                target.name = this.value;
+            }
         }
     }
 });
 
 GC.target_options_el.querySelector(".childof").addEventListener("change", function (e) {
-    let id = parseInt(this.parentNode.getAttribute("data-id"));
-    for (var i = 0; i < targets.length; i++) 
+    for (var j = 0; j < GC.selected_targets.length; j++)
     {
-        let target = targets[i];
-        if (target.id == id) 
+        for (var i = 0; i < targets.length; i++) 
         {
-            target.childof = e.target.options[e.target.selectedIndex].value;
+            let target = targets[i];
+            if (target.id == GC.selected_targets[j].id) 
+            {
+                target.childof = e.target.options[e.target.selectedIndex].value;
+            }
         }
     }
 });
 
 GC.target_options_el.querySelector(".type").addEventListener("change", function (e) {
-    let id = parseInt(this.parentNode.getAttribute("data-id"));
-    for (var i = 0; i < targets.length; i++) 
+    for (var j = 0; j < GC.selected_targets.length; j++)
     {
-        let target = targets[i];
-        if (target.id == id) 
+        for (var i = 0; i < targets.length; i++) 
         {
-            target.type = e.target.options[e.target.selectedIndex].value;
+            let target = targets[i];
+            if (target.id == GC.selected_targets[j].id) 
+            {
+                target.type = e.target.options[e.target.selectedIndex].value;
+            }
         }
     }
 });
 
 GC.target_options_el.querySelector(".actor").addEventListener("change", function (e) {
-    let id = parseInt(this.parentNode.getAttribute("data-id"));
-    for (var i = 0; i < targets.length; i++) 
+    for (var j = 0; j < GC.selected_targets.length; j++)
     {
-        let target = targets[i];
-        if (target.id == id) 
+        for (var i = 0; i < targets.length; i++) 
         {
-            target.actor = e.target.options[e.target.selectedIndex].value;
+            let target = targets[i];
+            if (target.id == GC.selected_targets[j].id) 
+            {
+                target.actor = e.target.options[e.target.selectedIndex].value;
+            }
         }
     }
 });
