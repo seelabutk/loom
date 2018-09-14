@@ -350,6 +350,7 @@ function draw(e, done, draw_selection) {
     ctx.setLineDash([6]);
     ctx.strokeStyle = "rgb(200, 200, 200)";
 
+    GC.selected_targets = [];
     // render all targets
     for (var i in targets) 
     {
@@ -359,6 +360,7 @@ function draw(e, done, draw_selection) {
         if (GC.current_tool == GC.TOOLS.SELECTION_CURSOR && shapeIsSelected(shape))
         {
             ctx.strokeStyle = "rgb(255, 100, 100)";
+            GC.selected_targets.push(targets[i]);
         }
         else
         {
@@ -440,69 +442,23 @@ function drawPolygon(poly, e, done) {
 function addTarget(shape) {
     let id = GC.target_counter++;
 
-    /*menu.setAttribute("data-id", id);
-    menu.querySelector(".remove").addEventListener("click", function () {
-        let id = parseInt(menu.getAttribute("data-id"));
-        for (i in targets) {
-            if (targets[i].id == id) {
-                targets.splice(i, 1);
-                menu.remove();
-                break;
-            }
-        }
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        draw();
-    });
-
-    menu.querySelector(".childof").addEventListener("focus", function () {
-        // remove all current options
-        while (this.options.length > 0) {
-            this.options.remove(0);
-        }
-
-        let option = document.createElement("option");
-        option.innerHTML = "Parent";
-        this.options.add(option);
-        let id = parseInt(this.parentNode.getAttribute("data-id"));
-        for (i in targets) {
-            let target = targets[i];
-            if (target.id != id) {
-                let option = document.createElement("option");
-                option.innerHTML = target.name;
-                this.options.add(option);
-            }
-        }
-    });
-
-    menu.querySelector(".name").addEventListener("change", function () {
-        let id = parseInt(this.parentNode.getAttribute("data-id"));
-        for (var i in targets) {
-            let target = targets[i];
-            if (target.id == id) {
-                target.name = this.value;
-            }
-
-        }
-    });*/
-
+    var target = { id: id, shape: shape };
     if (targets.length > 0) {
         // if there are targets, copy the values from last one
         // to simplify adding linear actors
         
-        
-        //var last_index = targets.length - 1;
-        //var last_menu = targets[last_index]["menu"];
-        //var type = last_menu.querySelector(".type").selectedIndex;
-        //var actor = last_menu.querySelector(".actor").selectedIndex;
-        //menu.querySelector(".type").selectedIndex = type;
-        //menu.querySelector(".actor").selectedIndex = actor;
+        var last_index = targets.length - 1;
+        var type = targets[last_index].type;
+        var actor = targets[last_index].actor;
+        target.type = type;
+        target.actor = actor;
     }
     let name = "Target " + id;
-    //menu.querySelector(".name").value = name;
-    targets.push({ id: id, name: name, menu: menu, shape: shape });
+    target.name = name;
+    targets.push(target);
 
     // add this new target to the selected targets
-    GC.selected_targets = [id];
+    GC.selected_targets = [target];
 }
 
 search = function (obj, name) {
@@ -562,5 +518,54 @@ loom_selection_cursor_el.onclick = function()
     chooseSelector(GC.TOOLS.SELECTION_CURSOR);   
     this.classList.toggle("active");
 }
+
+/* 
+ * Set up event handlers for the target option form
+ */
+
+/*
+menu.querySelector(".remove").addEventListener("click", function () {
+    let id = parseInt(menu.getAttribute("data-id"));
+    for (i in targets) {
+        if (targets[i].id == id) {
+            targets.splice(i, 1);
+            menu.remove();
+            break;
+        }
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    draw();
+});
+
+menu.querySelector(".childof").addEventListener("focus", function () {
+    // remove all current options
+    while (this.options.length > 0) {
+        this.options.remove(0);
+    }
+
+    let option = document.createElement("option");
+    option.innerHTML = "Parent";
+    this.options.add(option);
+    let id = parseInt(this.parentNode.getAttribute("data-id"));
+    for (i in targets) {
+        let target = targets[i];
+        if (target.id != id) {
+            let option = document.createElement("option");
+            option.innerHTML = target.name;
+            this.options.add(option);
+        }
+    }
+});
+
+menu.querySelector(".name").addEventListener("change", function () {
+    let id = parseInt(this.parentNode.getAttribute("data-id"));
+    for (var i in targets) {
+        let target = targets[i];
+        if (target.id == id) {
+            target.name = this.value;
+        }
+
+    }
+});*/
 
 init();
