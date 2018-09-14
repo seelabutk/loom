@@ -1,5 +1,7 @@
+const fs = require("fs");
+
 module.exports = {
-    save: function(targets)
+    prepare: function(targets)
     {
         var output = {};
         output.id = -1;
@@ -87,5 +89,12 @@ module.exports = {
         }
 
         return output;
+    },
+
+    save: function(data)
+    {
+        fs.writeFile("./viewer/config.json", 
+            JSON.stringify(data), 
+            () => {}); 
     }
 }

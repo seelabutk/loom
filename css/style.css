@@ -18,6 +18,32 @@ ph-window
     border-radius: 4.5px !important;
 }
 
+.loom-target-options
+{
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.loom-target-options input, .loom-target-options select
+{
+    font: -webkit-mini-control;
+}
+
+.loom-target-options input
+{
+    padding: 7px !important;
+    margin: 6px !important;
+    color: #333 !important;
+    width: 100px !important;
+    font-size: 12px !important;
+}
+
+.loom-target-options .remove
+{
+    font-size: 12px !important;
+    color: #c52121; 
+}
+
 #stats
 {
     position: absolute;

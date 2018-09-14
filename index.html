@@ -6,30 +6,6 @@
         <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css" rel="stylesheet">
         <link href="css/style.css" type="text/css" rel="stylesheet">
 
-        <script type="x-tmpl-mustache" id="tmpl-menu">
-<i class="fa fa-cog showhide" aria-hidden="true"></i>
-        <i class="fa fa-trash remove setting hide" aria-hidden="true"></i>
-        <input type="text" class='name setting hide'>        
-        <select class='childof setting hide'>
-            <option>Parent</option>
-        </select>
-        <select class='type setting hide' style="display: none">
-            <option>Type</option>
-            <option>Linear</option>
-            <option>Parallel</option>
-            <option>Orthogonal</option>
-            <option>Helper</option>
-        </select>
-        <select class='actor setting hide'>
-            <option>Action</option>
-            <option>Arcball</option>
-            <option>Arcball-reset</option>
-            <option>Button</option>
-            <option>Hover</option>
-            <option>Slider</option>
-        </select>
-        <div class='shape'>{{shape}}</div>
-        </script>
 
         <script type="x-tmpl-mustache" id="tmpl-stats">
 <i class="fa fa-arrows" aria-hidden="true"></i> 
@@ -91,13 +67,37 @@
                     </button>
                 </div>
 
+                <div class="loom-target-options pull-right">
+                    <input type="text" class='name setting'>        
+                    <select class='childof setting'>
+                        <option>Parent</option>
+                    </select>
+                    <select class='type setting'>
+                        <option>Type</option>
+                        <option>Linear</option>
+                        <option>Parallel</option>
+                        <option>Orthogonal</option>
+                        <option>Helper</option>
+                    </select>
+                    <select class='actor setting'>
+                        <option>Action</option>
+                        <option>Arcball</option>
+                        <option>Arcball-reset</option>
+                        <option>Button</option>
+                        <option>Hover</option>
+                        <option>Slider</option>
+                    </select>
+                    <i class="fa fa-trash remove setting" aria-hidden="true"></i>
+                </div>
             </div>
 
         </tool-bar>
+
         <script>
-// You can also require other files to run in this process
-require('./renderer.js')
+            // You can also require other files to run in this process
+            require('./renderer.js')
         </script>
+
         </ph-window>
     </body>
 

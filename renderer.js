@@ -25,8 +25,6 @@ win.removeAllListeners();
 var interactor = null; // the external interactor process 
 
 // Set up Mustache templates
-var template = document.getElementById("tmpl-menu").innerHTML;
-Mustache.parse(template);
 var stats_template = document.getElementById("tmpl-stats").innerHTML;
 Mustache.parse(stats_template);
 
@@ -61,7 +59,7 @@ GC.shape = null; // global temp shape for dragging and drawing
 GC.target_counter = 0; // used as a unique identifier for the target IDs
 GC.drag = false;
 GC.current_tool = GC.TOOLS.SELECTION_CURSOR;
-
+GC.selected_targets = [];
 
 /*
  * Executes an external process
@@ -94,11 +92,7 @@ var menu = Menu.buildFromTemplate([
                 label: "Save",
                 accelerator: "CmdOrCtrl+S",
                 click: function () {
-                    fs.writeFile(
-                            "./viewer/config.json",
-                            JSON.stringify(saver.save(targets)),
-                            () => { }
-                            );
+                    saver.save(saver.prepare(targets));
                 }
             },
             {
@@ -131,7 +125,7 @@ var menu = Menu.buildFromTemplate([
                                                     polygons = JSON.parse(output);
                                                     for (var i in polygons) {
                                                         var shape = {points: polygons[i].points, type: "poly"};
-                                                        addMenu(shape);
+                                                        addTarget(shape);
                                                     }
                                                 });
                                             }
@@ -228,6 +222,13 @@ function mouseDown(e) {
         GC.shape.startX = e.pageX - this.offsetLeft;
         GC.shape.startY = e.pageY - this.offsetTop;
         GC.drag = true;
+
+        // If we're selecting targets, empty the selection
+        // list first
+        if (GC.current_tool == GC.TOOLS.SELECTION_CURSOR)
+        {
+            GC.selected_targets = [];   
+        }
     } 
     else if (GC.current_tool == GC.TOOLS.TARGET_CIRCLE) 
     {
@@ -253,7 +254,7 @@ function mouseDown(e) {
                 GC.shape.points.push(point);
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 draw(e, true);
-                addMenu(JSON.parse(JSON.stringify(GC.shape)));
+                addTarget(JSON.parse(JSON.stringify(GC.shape)));
                 GC.drag = false;
                 GC.shape = null;
                 return;
@@ -279,7 +280,7 @@ function mouseUp(e) {
         {
             return;
         }
-        addMenu(JSON.parse(JSON.stringify(GC.shape)));
+        addTarget(JSON.parse(JSON.stringify(GC.shape)));
     } 
     else if (GC.current_tool == GC.TOOLS.TARGET_CIRCLE) 
     {
@@ -288,14 +289,16 @@ function mouseUp(e) {
         {
             return;
         }
-        addMenu(JSON.parse(JSON.stringify(GC.shape)));
+        addTarget(JSON.parse(JSON.stringify(GC.shape)));
     }
     else if (GC.current_tool == GC.TOOLS.SELECTION_CURSOR)
     {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
-    GC.shape = null;
+    //GC.shape = null;// clear the selection;
+    draw();
+
     //ctx.clearRect(0,0,canvas.width,canvas.height);
 }
 
@@ -308,7 +311,7 @@ function mouseMove(e) {
             GC.shape.w = e.pageX - this.offsetLeft - GC.shape.startX;
             GC.shape.h = e.pageY - this.offsetTop - GC.shape.startY;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            draw();
+            draw(e, true, true);
         } 
         else if (GC.current_tool == GC.TOOLS.TARGET_CIRCLE) 
         {
@@ -327,7 +330,23 @@ function mouseMove(e) {
     }
 }
 
-function draw(e, done) {
+/* Compare the points of the shape with the selected area (GC.shape) */
+function shapeIsSelected(shape)
+{
+    if (GC.shape && shape && shape.type == "rect")
+    {
+        if (GC.shape.startX <= shape.startX &&
+            GC.shape.startY <= shape.startY &&
+            (GC.shape.startX + GC.shape.w) >= (shape.startX + shape.w) &&
+            (GC.shape.startY + GC.shape.h) >= (shape.startY + shape.h))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+function draw(e, done, draw_selection) {
     ctx.setLineDash([6]);
     ctx.strokeStyle = "rgb(200, 200, 200)";
 
@@ -335,6 +354,17 @@ function draw(e, done) {
     for (var i in targets) 
     {
         let shape = targets[i].shape;
+
+        // Mark the shape as red if it's selected
+        if (GC.current_tool == GC.TOOLS.SELECTION_CURSOR && shapeIsSelected(shape))
+        {
+            ctx.strokeStyle = "rgb(255, 100, 100)";
+        }
+        else
+        {
+            ctx.strokeStyle = "rgb(200, 200, 200)";
+        }
+
         if (shape && shape.type == "rect") 
         {
             drawRectangle(shape);
@@ -347,6 +377,13 @@ function draw(e, done) {
         {
             drawPolygon(shape);
         }
+    }
+
+    ctx.strokeStyle = "rgb(200, 200, 200)";
+
+    if (GC.current_tool == GC.TOOLS.SELECTION_CURSOR && !draw_selection)
+    {
+        return;    
     }
 
     // now render the new tool/target
@@ -400,49 +437,10 @@ function drawPolygon(poly, e, done) {
 // should be renamed to addTarget
 // a single menu should always exist albeit hidden in the toolbar
 //
-function addMenu(shape) {
-    var menu = document.createElement("div");
-    menu.style.position = "absolute";
-    if (shape.type && shape.type == "rect") 
-    {
-        menu.style.left = shape.startX + 10 + "px";
-        menu.style.top = shape.startY + "px";
-    } 
-    else if (shape.type && shape.type == "circ") 
-    {
-        menu.style.left =
-            shape.midX + shape.rad * Math.cos(45 * (Math.PI / 180)) + "px";
-        menu.style.top =
-            shape.midY -
-            shape.rad * Math.sin(45 * (Math.PI / 180)) -
-            9.25 -
-            4.29 +
-            "px";
-    } 
-    else if (shape.type && shape.type == "poly") 
-    {
-        menu.style.left = shape.points[0].x - 4.29 + "px";
-        menu.style.top = shape.points[0].y - 9.25 + "px";
-        let polygon = [];
-        for (let i = 0; i < shape.points.length; i++) {
-            polygon.push([shape.points[i].x, shape.points[i].y]);
-        }
-        let center = polylabel([polygon])
-            shape.centerX = center[0];
-        shape.centerY = center[1];
-    }
-    menu.style.zIndex = 10000;
-    menu.classList.add("menu");
-
+function addTarget(shape) {
     let id = GC.target_counter++;
-    menu.setAttribute("data-id", id);
-    menu.innerHTML = Mustache.render(template, { shape: JSON.stringify(shape) });
-    menu.querySelector(".showhide").addEventListener("click", function () {
-        menu.querySelectorAll(".setting").forEach(function (item) {
-            item.classList.toggle("hide");
-        });
-    });
-    document.body.appendChild(menu);
+
+    /*menu.setAttribute("data-id", id);
     menu.querySelector(".remove").addEventListener("click", function () {
         let id = parseInt(menu.getAttribute("data-id"));
         for (i in targets) {
@@ -485,21 +483,26 @@ function addMenu(shape) {
             }
 
         }
-    });
+    });*/
 
     if (targets.length > 0) {
         // if there are targets, copy the values from last one
         // to simplify adding linear actors
-        var last_index = targets.length - 1;
-        var last_menu = targets[last_index]["menu"];
-        var type = last_menu.querySelector(".type").selectedIndex;
-        var actor = last_menu.querySelector(".actor").selectedIndex;
-        menu.querySelector(".type").selectedIndex = type;
-        menu.querySelector(".actor").selectedIndex = actor;
+        
+        
+        //var last_index = targets.length - 1;
+        //var last_menu = targets[last_index]["menu"];
+        //var type = last_menu.querySelector(".type").selectedIndex;
+        //var actor = last_menu.querySelector(".actor").selectedIndex;
+        //menu.querySelector(".type").selectedIndex = type;
+        //menu.querySelector(".actor").selectedIndex = actor;
     }
     let name = "Target " + id;
-    menu.querySelector(".name").value = name;
+    //menu.querySelector(".name").value = name;
     targets.push({ id: id, name: name, menu: menu, shape: shape });
+
+    // add this new target to the selected targets
+    GC.selected_targets = [id];
 }
 
 search = function (obj, name) {
