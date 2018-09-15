@@ -19,11 +19,6 @@ const saver = require('./saver.js');
 
 win.removeAllListeners();
 
-/* 
- * Global variables not in GC. Must be moved to GC later. 
- */
-var interactor = null; // the external interactor process 
-
 // Set up Mustache templates
 var stats_template = document.getElementById("tmpl-stats").innerHTML;
 Mustache.parse(stats_template);
@@ -37,7 +32,9 @@ var ctx = canvas.getContext("2d");
 /* 
  * The global context
  */
-var GC = {}; 
+var GC = {
+  interactor: null
+}; 
 
 /*
  * Global constants
@@ -127,7 +124,7 @@ var menu = Menu.buildFromTemplate([
                         process.platform === "win32"
                         ? "python interact.py ./viewer/config.json 500"
                         : "python interact.py ./viewer/config.json 500";
-                    interactor = execute(cmd + delay, function(output) {
+                    GC.interactor = execute(cmd + delay, function(output) {
                         console.log(output);
                     });
                 }
@@ -136,8 +133,8 @@ var menu = Menu.buildFromTemplate([
                 label: "Stop",
                 accelerator: "CmdOrCtrl+K",
                 click: function () {
-                    if (interactor !== null) {
-                        interactor.kill();
+                    if (GC.interactor !== null) {
+                        GC.interactor.kill();
                     }
                 }
             },
@@ -191,7 +188,7 @@ function handleScreenshot(source, bounds)
             else 
             {
                 let cmd = "python segment.py screenshot.png";
-                interactor = execute(cmd, function(code, output) {
+                GC.interactor = execute(cmd, function(code, output) {
                     polygons = JSON.parse(output);
                     for (var i = 0; i < polygons.length; i++) {
                         var shape = {points: polygons[i].points, type: "poly"};
@@ -303,9 +300,7 @@ function mouseUp(e) {
     }
 
     //GC.shape = null;// clear the selection;
-    draw();
-
-    //ctx.clearRect(0,0,canvas.width,canvas.height);
+    //draw(); //why was this here?
 }
 
 function mouseMove(e) {
