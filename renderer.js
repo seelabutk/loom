@@ -245,7 +245,7 @@ function mouseDown(e) {
     } 
     else if (GC.current_tool == GC.TOOLS.TARGET_POLYGON) 
     {
-        if (GC.shape == null) {
+        if (!GC.shape || (GC.shape && GC.shape.type !== "poly")) {
             GC.shape = { type: "poly" };
             GC.shape.points = [];
         }
@@ -309,31 +309,32 @@ function mouseUp(e) {
 }
 
 function mouseMove(e) {
-    if (GC.drag) {
-        if (GC.current_tool == GC.TOOLS.TARGET_RECTANGLE || 
-            GC.current_tool == GC.TOOLS.TARGET_SMART || 
-            GC.current_tool == GC.TOOLS.SELECTION_CURSOR) 
-        {
-            GC.shape.w = e.pageX - this.offsetLeft - GC.shape.startX;
-            GC.shape.h = e.pageY - this.offsetTop - GC.shape.startY;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            draw(e, true, true);
-        } 
-        else if (GC.current_tool == GC.TOOLS.TARGET_CIRCLE) 
-        {
-            GC.shape.endX = e.pageX - this.offsetLeft;
-            GC.shape.endY = e.pageY - this.offsetTop;
-            GC.shape.midX = (GC.shape.endX - GC.shape.startX) / 2 + GC.shape.startX;
-            GC.shape.midY = (GC.shape.endY - GC.shape.startY) / 2 + GC.shape.startY;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            draw();
-        } 
-        else if (GC.current_tool == GC.TOOLS.TARGET_POLYGON) 
-        {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            draw(e, false);
-        }
+    if (!GC.drag) return;
+    
+    if (GC.current_tool == GC.TOOLS.TARGET_RECTANGLE || 
+        GC.current_tool == GC.TOOLS.TARGET_SMART || 
+        GC.current_tool == GC.TOOLS.SELECTION_CURSOR) 
+    {
+        GC.shape.w = e.pageX - this.offsetLeft - GC.shape.startX;
+        GC.shape.h = e.pageY - this.offsetTop - GC.shape.startY;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        draw(e, true, true);
+    } 
+    else if (GC.current_tool == GC.TOOLS.TARGET_CIRCLE) 
+    {
+        GC.shape.endX = e.pageX - this.offsetLeft;
+        GC.shape.endY = e.pageY - this.offsetTop;
+        GC.shape.midX = (GC.shape.endX - GC.shape.startX) / 2 + GC.shape.startX;
+        GC.shape.midY = (GC.shape.endY - GC.shape.startY) / 2 + GC.shape.startY;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        draw();
+    } 
+    else if (GC.current_tool == GC.TOOLS.TARGET_POLYGON) 
+    {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        draw(e, false);
     }
+    
 }
 
 /* Compare the points of the shape with the selected area (GC.shape) */
@@ -484,9 +485,9 @@ function drawCircle(c)
 function drawPolygon(poly, e, done) {
     ctx.beginPath();
     ctx.moveTo(poly.points[0].x, poly.points[0].y);
-    for (let j = 1; j < poly.points.length; j++) 
+    for (let i = 1; i < poly.points.length; i++) 
     {
-        ctx.lineTo(poly.points[j].x, poly.points[j].y);
+        ctx.lineTo(poly.points[i].x, poly.points[i].y);
     }
     if (typeof done !== 'undefined' && !done) 
     {
