@@ -2,13 +2,9 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-const polylabel = require("polylabel")
 const electron = require("electron");
-const Mustache = require("mustache");
 const fs = require("fs");
-const exec = require("child_process").exec;
 const Menu = electron.remote.Menu;
-const MenuItem = electron.remote.MenuItem;
 const win = electron.remote.getCurrentWindow();
 const desktopCapturer = electron.desktopCapturer;
 const electronScreen = electron.screen;
@@ -16,12 +12,6 @@ const Photon = require("electron-photon");
 
 // from LOA's codebase 
 const saver = require('./saver.js');
-
-win.removeAllListeners();
-
-// Set up Mustache templates
-var stats_template = document.getElementById("tmpl-stats").innerHTML;
-Mustache.parse(stats_template);
 
 // Set up the canvas
 var canvas = document.getElementById("canvas");
@@ -32,9 +22,7 @@ var ctx = canvas.getContext("2d");
 /* 
  * The global context
  */
-var GC = {
-  interactor: null
-}; 
+var GC = {}; 
 
 /*
  * Global constants
@@ -58,6 +46,7 @@ GC.drag = false;
 GC.current_tool = GC.TOOLS.SELECTION_CURSOR;
 GC.selected_targets = [];
 GC.target_options_el = document.querySelector(".loom-target-options");
+GC.interactor = null;
 
 /*
  * Executes an external process
@@ -297,6 +286,7 @@ function mouseUp(e) {
     else if (GC.current_tool == GC.TOOLS.SELECTION_CURSOR)
     {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        draw();
     }
 
     //GC.shape = null;// clear the selection;
