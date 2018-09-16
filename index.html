@@ -1,83 +1,84 @@
 <!DOCTYPE html>
 <html style="height: 100%">
-    <head>
-        <meta charset="UTF-8">
-        <title>Loom</title>
-        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css" rel="stylesheet">
-        <link href="css/style.css" type="text/css" rel="stylesheet">
-    </head>
-    <body>
 
-        <ph-window>
-        <div id="root"></div>
-        <canvas id="canvas" width="100" height="100"></canvas>
+<head>
+  <meta charset="UTF-8">
+  <title>Loom</title>
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css" rel="stylesheet">
+  <link href="css/style.css" type="text/css" rel="stylesheet">
+</head>
 
-        <tool-bar type="footer" id='stats' class="toolbar toolbar-footer">
-            <!--Screenshot Delay: <input type='text' id='delay'>ms-->
+<body>
 
-			<tab-group>
-				<tab-item>
-					Workspace 1
-				</tab-item>
-				<tab-item>
-					<button action="close"></button>
-                    Workspace 2 
-				</tab-item>
-                <tab-item type="fixed" action="add"></tab-item>
-			</tab-group>
- 
+  <ph-window>
+    <div id="root"></div>
+    <canvas id="canvas" width="100" height="100"></canvas>
 
-            <div class="toolbar-actions">
-                <button class="loom-tool-selector btn btn-default btn-dropdown">
-                    <span class="icon icon-pencil"></span>
-                </button>
-                <div class="btn-group">
-                    <button class="btn btn-default active loom-selection-cursor">
-                        <span class="icon icon-doc-landscape"></span>
-                    </button>
-                    <button class="btn btn-default">
-                        <span class="icon icon-floppy"></span>
-                    </button>
-                    <button class="btn btn-default">
-                        <span class="icon icon-record"></span>
-                    </button>
-                    <button class="btn btn-default">
-                        <span class="icon icon-export"></span>
-                    </button>
-                </div>
+    <tool-bar type="footer" id='stats' class="toolbar toolbar-footer">
+      <!--Screenshot Delay: <input type='text' id='delay'>ms-->
 
-                <div class="loom-target-options pull-right">
-                    <input type="text" class='name setting'>        
-                    <select class='childof setting'>
-                        <option>Parent</option>
-                    </select>
-                    <select class='type setting'>
-                        <option value="Type">Type</option>
-                        <option value="Linear">Linear</option>
-                        <option value="Parallel">Parallel</option>
-                        <option value="Orthogonal">Orthogonal</option>
-                        <option value="Helper">Helper</option>
-                    </select>
-                    <select class='actor setting'>
-                        <option value="Action">Action</option>
-                        <option value="Arcball">Arcball</option>
-                        <option value="Arcball-reset">Arcball-reset</option>
-                        <option value="Button">Button</option>
-                        <option value="Hover">Hover</option>
-                        <option value="Slider">Slider</option>
-                    </select>
-                    <i class="fa fa-trash remove setting" aria-hidden="true"></i>
-                </div>
-            </div>
+      <tab-group>
+        <tab-item>
+          Workspace 1
+        </tab-item>
+        <tab-item>
+          <button action="close"></button>
+          Workspace 2
+        </tab-item>
+        <tab-item type="fixed" action="add"></tab-item>
+      </tab-group>
 
-        </tool-bar>
+      <div class="toolbar-actions">
+        <button class="loom-tool-selector btn btn-default btn-dropdown">
+          <span class="icon icon-pencil"></span>
+        </button>
+        <div class="btn-group">
+          <button class="btn btn-default active loom-selection-cursor">
+            <span class="icon icon-doc-landscape"></span>
+          </button>
+          <button class="btn btn-default">
+            <span class="icon icon-floppy"></span>
+          </button>
+          <button class="btn btn-default">
+            <span class="icon icon-record"></span>
+          </button>
+          <button class="btn btn-default">
+            <span class="icon icon-export"></span>
+          </button>
+        </div>
 
-        <script>
-            // You can also require other files to run in this process
-            require('./renderer.js')
-        </script>
+        <div class="loom-target-options pull-right">
+          <input type="text" class='name setting'>
+          <select class='childof setting'>
+            <option>Parent</option>
+          </select>
+          <select class='type setting'>
+            <option value="Type">Type</option>
+            <option value="Linear">Linear</option>
+            <option value="Parallel">Parallel</option>
+            <option value="Orthogonal">Orthogonal</option>
+            <option value="Helper">Helper</option>
+          </select>
+          <select class='actor setting'>
+            <option value="Action">Action</option>
+            <option value="Arcball">Arcball</option>
+            <option value="Arcball-reset">Arcball-reset</option>
+            <option value="Button">Button</option>
+            <option value="Hover">Hover</option>
+            <option value="Slider">Slider</option>
+          </select>
+          <i class="fa fa-trash remove setting" aria-hidden="true"></i>
+        </div>
+      </div>
 
-        </ph-window>
-    </body>
+    </tool-bar>
+
+    <script>
+      // You can also require other files to run in this process
+      require('./renderer.js')
+    </script>
+
+  </ph-window>
+</body>
 
 </html>
