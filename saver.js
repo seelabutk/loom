@@ -1,19 +1,30 @@
 const fs = require("fs");
 
 module.exports = {
-    prepare: function(targets, win)
+    prepare: function(targets, window_bounds)
     {
         var output = {};
         output.id = -1;
         output.name = "root";
         output.children = [];
-        output.window = win.getBounds();
+        output.window = window_bounds;
 
         var not_placed = [];
-        for (let target of targets) 
+        for (var i = 0; i < targets.length; i++) 
         {
-            var { id, name, type, actor, parent, shape } = target
 
+            if (typeof(targets[i].actor) == 'undefined' ||
+                typeof(targets[i].childof) == 'undefined')
+            {
+                continue;
+            }
+
+            var id = targets[i].id;
+            var name = targets[i].name.toLowerCase();
+            var type = "linear"; //menu.querySelector(".type").value.toLowerCase();
+            var actor = targets[i].actor.toLowerCase();
+            var parent = targets[i].childof.toLowerCase();
+            var shape = targets[i].shape;
             if (parent == "parent") 
             {
                 parent = "root";
