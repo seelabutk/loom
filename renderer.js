@@ -39,7 +39,6 @@ GC.TOOLS = {
 };
 
 // More global variables in GC
-targets = []; // all targets in a list
 GC.shape = null; // global temp shape for dragging and drawing
 GC.target_counter = 0; // used as a unique identifier for the target IDs
 GC.drag = false;
@@ -79,7 +78,14 @@ var menu = Menu.buildFromTemplate([
         label: "Save",
         accelerator: "CmdOrCtrl+S",
         click: function() {
-          saver.save(saver.prepare(targets));
+          let targets = [];
+          for (const tab in GC.tabs) {
+            if (GC.tabs.hasOwnProperty(tab))
+              for (const target of GC.tabs[tab]) {
+                targets.push(target)
+              }
+          }
+          saver.save(saver.prepare(targets, win));
         }
       },
       {
@@ -196,7 +202,7 @@ function init() {
     let dimensions = win.getBounds();
     canvas.width = dimensions.width;
     canvas.height = dimensions.height - 15;
-    draw();
+    draw(null, null, null, true);
   });
 }
 
@@ -248,7 +254,7 @@ function mouseDown(e) {
   }
 }
 
-function mouseUp(e) {
+function mouseUp() {
   // The polygon tool doesn't have dragging
   if (GC.current_tool !== GC.TOOLS.TARGET_POLYGON) {
     GC.drag = false;
@@ -360,14 +366,14 @@ function selectTarget(target) {
   selectOption(GC.target_options_el.querySelector(".actor"), target.actor);
 }
 
-function draw(e, done, draw_selection) {
+function draw(e, done, draw_selection, tabChange) {
   ctx.setLineDash([6]);
   ctx.strokeStyle = "rgb(200, 200, 200)";
 
   GC.selected_targets = [];
   // render all targets
-  for (var i = 0; i < targets.length; i++) {
-    let shape = targets[i].shape;
+  for (var i = 0; i < GC.tabs[GC.selected_tab].length; i++) {
+    let shape = GC.tabs[GC.selected_tab][i].shape;
 
     // Mark the shape as red if it's selected
     if (
@@ -375,7 +381,7 @@ function draw(e, done, draw_selection) {
       shapeIsSelected(shape)
     ) {
       ctx.strokeStyle = "rgb(255, 100, 100)";
-      selectTarget(targets[i]);
+      selectTarget(GC.tabs[GC.selected_tab][i]);
     } else {
       ctx.strokeStyle = "rgb(200, 200, 200)";
     }
@@ -405,10 +411,11 @@ function draw(e, done, draw_selection) {
       ctx.setLineDash([1]);
       ctx.strokeStyle = "rgb(170, 190, 250)";
     }
-    drawRectangle(GC.shape);
+    if (!tabChange)
+      drawRectangle(GC.shape);
   }
-  if (GC.current_tool == GC.TOOLS.TARGET_CIRCLE) drawCircle(GC.shape);
-  if (GC.current_tool == GC.TOOLS.TARGET_POLYGON)
+  if (GC.current_tool == GC.TOOLS.TARGET_CIRCLE && !tabChange) drawCircle(GC.shape);
+  if (GC.current_tool == GC.TOOLS.TARGET_POLYGON && !tabChange)
     drawPolygon(GC.shape, e, done);
 
   if (GC.selected_targets.length == 0) {
@@ -443,7 +450,6 @@ function drawPolygon(poly, e, done) {
   ctx.stroke();
 }
 
-// should be renamed to addTarget
 // a single menu should always exist albeit hidden in the toolbar
 //
 function addTarget(shape) {
@@ -459,19 +465,23 @@ function addTarget(shape) {
   let id = GC.target_counter++;
 
   var target = { id: id, shape: shape };
-  if (targets.length > 0) {
+  if (GC.tabs[GC.selected_tab].length > 0) {
     // if there are targets, copy the values from last one
     // to simplify adding linear actors
 
-    var last_index = targets.length - 1;
-    var type = targets[last_index].type;
-    var actor = targets[last_index].actor;
+    var last_index = GC.tabs[GC.selected_tab].length - 1;
+    var type = GC.tabs[GC.selected_tab][last_index].type;
+    var actor = GC.tabs[GC.selected_tab][last_index].actor;
     target.type = type;
     target.actor = actor;
+  } else {
+    target.type = "Linear"
+    target.actor = "Arcball"
   }
   let name = "Target " + id;
   target.name = name;
-  targets.push(target);
+  target.parent = "parent"
+  GC.tabs[GC.selected_tab].push(target);
 
   // add this new target to the selected targets
   GC.selected_targets = [target];
@@ -542,6 +552,29 @@ loom_selection_cursor_el.onclick = function() {
   this.classList.toggle("active");
 };
 
+GC.selected_tab = "Tab 1";
+GC.tabs = {
+  "Tab 1": [],
+  "Tab 2": []
+}
+document.getElementById('tab-select').addEventListener("change", e => {
+  if (e.target.value == "Add Tab") {
+    let tab = document.createElement("option")
+    tab.text = `Tab ${e.target.selectedIndex + 1}`
+    GC.tabs[tab.text] = []
+    tab.selected = true
+    GC.selected_tab = tab.text
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    draw(null, null, null, true);
+    return e.srcElement.add(tab, e.target.selectedIndex)
+  } else if (e.target.value == "Display") {
+    return console.log(JSON.stringify(GC.tabs))
+  }
+  GC.selected_tab = e.target.value
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  draw(null, null, null, true);
+})
+
 /* 
  * Set up event handlers for the target option form
  */
@@ -550,9 +583,9 @@ GC.target_options_el.querySelector(".remove").addEventListener(
   "click",
   function() {
     for (var j = 0; j < GC.selected_targets.length; j++) {
-      for (var i = 0; i < targets.length; i++) {
-        if (targets[i].id == GC.selected_targets[j].id) {
-          targets.splice(i, 1);
+      for (var i = 0; i < GC.tabs[GC.selected_tab].length; i++) {
+        if (GC.tabs[GC.selected_tab][i].id == GC.selected_targets[j].id) {
+          GC.tabs[GC.selected_tab].splice(i, 1);
           break;
         }
       }
@@ -573,24 +606,31 @@ GC.target_options_el.querySelector(".childof").addEventListener(
     let option = document.createElement("option");
     option.innerHTML = "Parent";
     this.options.add(option);
-    //let id = parseInt(this.parentNode.getAttribute("data-id"));
-    for (let target of targets) {
-      //if (target.id != id)
-      //{
+
+    Object.keys(GC.tabs).forEach(tab => {
+
+      /* separators between tab targets w/ description of tab they belong to */
       let option = document.createElement("option");
-      option.innerHTML = target.name;
-      option.value = target.name;
+      option.innerHTML = tab;
+      option.value = tab;
+      option.disabled = true;
       this.options.add(option);
-      //}
-    }
+
+      Object.keys(GC.tabs[tab]).forEach(target => {
+        let option = document.createElement("option");
+        option.innerHTML = GC.tabs[tab][target].name;
+        option.value = GC.tabs[tab][target].name;
+        this.options.add(option);
+      })
+    })
   });
 
 GC.target_options_el.querySelector(".name").addEventListener(
   "change",
   function() {
     for (var j = 0; j < GC.selected_targets.length; j++) {
-      for (var i = 0; i < targets.length; i++) {
-        let target = targets[i];
+      for (var i = 0; i < GC.tabs[GC.selected_tab].length; i++) {
+        let target = GC.tabs[GC.selected_tab][i];
         if (target.id == GC.selected_targets[j].id) {
           target.name = this.value;
         }
@@ -602,8 +642,8 @@ GC.target_options_el.querySelector(".childof").addEventListener(
   "change",
   function(e) {
     for (var j = 0; j < GC.selected_targets.length; j++) {
-      for (var i = 0; i < targets.length; i++) {
-        let target = targets[i];
+      for (var i = 0; i < GC.tabs[GC.selected_tab].length; i++) {
+        let target = GC.tabs[GC.selected_tab][i];
         if (target.id == GC.selected_targets[j].id) {
           target.childof = e.target.options[e.target.selectedIndex].value;
         }
@@ -615,8 +655,8 @@ GC.target_options_el.querySelector(".type").addEventListener(
   "change",
   function(e) {
     for (var j = 0; j < GC.selected_targets.length; j++) {
-      for (var i = 0; i < targets.length; i++) {
-        let target = targets[i];
+      for (var i = 0; i < GC.tabs[GC.selected_tab].length; i++) {
+        let target = GC.tabs[GC.selected_tab][i];
         if (target.id == GC.selected_targets[j].id) {
           target.type = e.target.options[e.target.selectedIndex].value;
         }
@@ -628,8 +668,8 @@ GC.target_options_el.querySelector(".actor").addEventListener(
   "change",
   function(e) {
     for (var j = 0; j < GC.selected_targets.length; j++) {
-      for (var i = 0; i < targets.length; i++) {
-        let target = targets[i];
+      for (var i = 0; i < GC.tabs[GC.selected_tab].length; i++) {
+        let target = GC.tabs[GC.selected_tab][i];
         if (target.id == GC.selected_targets[j].id) {
           target.actor = e.target.options[e.target.selectedIndex].value;
         }

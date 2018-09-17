@@ -1,7 +1,7 @@
 const fs = require("fs");
 
 module.exports = {
-    prepare: function(targets)
+    prepare: function(targets, win)
     {
         var output = {};
         output.id = -1;
@@ -10,16 +10,10 @@ module.exports = {
         output.window = win.getBounds();
 
         var not_placed = [];
-        for (i in targets) 
+        for (let target of targets) 
         {
-            var menu = targets[i].menu;
-            var id = parseInt(menu.getAttribute("data-id"));
-            var name = menu.querySelector(".name").value.toLowerCase();
-            var type = "linear"; //menu.querySelector(".type").value.toLowerCase();
-            var actor = menu.querySelector(".actor").value.toLowerCase();
-            var parent = menu
-                .querySelector(".childof")
-                .selectedOptions[0].value.toLowerCase();
+            var { id, name, type, actor, parent, shape } = target
+
             if (parent == "parent") 
             {
                 parent = "root";
@@ -28,29 +22,29 @@ module.exports = {
             {
                 type = "helper";
             }
-            var temp = JSON.parse(menu.querySelector(".shape").innerHTML);
-            var shape = {};
-            shape.type = temp.type;
+
+            var tempShape = {};
+            tempShape.type = shape.type;
 
             let ratio = 1; //window.devicePixelRatio;
-            if (shape.type == "rect") 
+            if (tempShape.type == "rect") 
             {
-                shape.x = temp.startX * ratio;
-                shape.y = temp.startY * ratio;
-                shape.width = temp.w * ratio;
-                shape.height = temp.h * ratio;
+                tempShape.x = shape.startX * ratio;
+                tempShape.y = shape.startY * ratio;
+                tempShape.width = shape.w * ratio;
+                tempShape.height = shape.h * ratio;
             } 
-            else if (shape.type == "circ") 
+            else if (tempShape.type == "circ") 
             {
-                shape.centerX = temp.midX * ratio;
-                shape.centerY = temp.midY * ratio;
-                shape.radius = temp.rad * ratio;
+                tempShape.centerX = shape.midX * ratio;
+                tempShape.centerY = shape.midY * ratio;
+                tempShape.radius = shape.rad * ratio;
             } 
-            else if (shape.type == "poly") 
+            else if (tempShape.type == "poly") 
             {
-                shape.centerX = temp.centerX * ratio;
-                shape.centerY = temp.centerY * ratio;
-                shape.points = temp.points;
+                tempShape.centerX = shape.centerX * ratio;
+                tempShape.centerY = shape.centerY * ratio;
+                tempShape.points = shape.points;
             }
 
             var obj = {
@@ -59,7 +53,7 @@ module.exports = {
                 type: type,
                 actor: actor,
                 parent: parent,
-                shape: shape
+                shape: tempShape
             };
             if (parent == "root") 
             {
