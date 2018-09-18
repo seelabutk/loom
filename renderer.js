@@ -4,11 +4,8 @@
 
 const polylabel = require("polylabel")
 const electron = require("electron");
-const Mustache = require("mustache");
 const fs = require("fs");
-const exec = require("child_process").exec;
 const Menu = electron.remote.Menu;
-const MenuItem = electron.remote.MenuItem;
 const win = electron.remote.getCurrentWindow();
 const desktopCapturer = electron.desktopCapturer;
 const electronScreen = electron.screen;
