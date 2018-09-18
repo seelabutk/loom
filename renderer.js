@@ -80,32 +80,12 @@ var menu = Menu.buildFromTemplate([
             {
                 label: "Save",
                 accelerator: "CmdOrCtrl+S",
-                click: function() {
-                    let targets = [];
-                    for (const tab in GC.tabs) {
-                        if (GC.tabs.hasOwnProperty(tab))
-                            for (const target of GC.tabs[tab]) {
-                                targets.push(target)
-                            }
-                    }
-                    saver.save(saver.prepare(targets, win.getBounds()));
-                }
+                click: save
             },
             {
                 label: "Run",
                 accelerator: "CmdOrCtrl+R",
-                click: function() {
-                    let delay = ''; //document.getElementById("delay").value;
-                    delay =
-                        !isNaN(parseFloat(delay)) && isFinite(delay) ? " " + delay : " 250";
-                    let cmd =
-                        process.platform === "win32"
-                        ? "python interact.py ./viewer/config.json 500"
-                        : "python interact.py ./viewer/config.json 500";
-                    GC.interactor = execute(cmd + delay, function(output) {
-                        console.log(output);
-                    });
-                }
+                click: runInteraction
             },
             {
                 label: "Stop",
@@ -119,18 +99,7 @@ var menu = Menu.buildFromTemplate([
             {
                 label: "Export Video",
                 accelerator: "CmdOrCtrl+E",
-                click: function() {
-                    let width = parseInt(Math.floor(win.getBounds()["width"] / 2) * 2);
-                    let height = parseInt(Math.floor(win.getBounds()["height"] / 2) * 2);
-                    let window_size = width + ":" + height;
-                    let cmd =
-                        process.platform === "win32"
-                        ? "generate_loom.bat "
-                        : "./generate_loom.sh ";
-                    execute(cmd + window_size, function(output) {
-                        console.log(output);
-                    });
-                }
+                click: exportLoom
             },
             {
                 label: "Developer Tools",
@@ -150,6 +119,52 @@ var menu = Menu.buildFromTemplate([
         }
 ]);
 Menu.setApplicationMenu(menu);
+
+/* 
+ * Save the targets from all tabs in a JSON
+ */
+function save()
+{
+    let targets = [];
+    for (const tab in GC.tabs) {
+        if (GC.tabs.hasOwnProperty(tab))
+            for (const target of GC.tabs[tab]) {
+                targets.push(target)
+            }
+    }
+    saver.save(saver.prepare(targets, win.getBounds()));
+}
+
+/* 
+ * Run the automatic interaction externally 
+ */
+function runInteraction()
+{
+    let delay = ''; //document.getElementById("delay").value;
+    delay =
+        !isNaN(parseFloat(delay)) && isFinite(delay) ? " " + delay : " 250";
+    let cmd =
+        process.platform === "win32"
+        ? "python interact.py ./viewer/config.json 500"
+        : "python interact.py ./viewer/config.json 500";
+    GC.interactor = execute(cmd + delay, function(output) {
+        console.log(output);
+    });
+}
+
+function exportLoom()
+{
+    let width = parseInt(Math.floor(win.getBounds()["width"] / 2) * 2);
+    let height = parseInt(Math.floor(win.getBounds()["height"] / 2) * 2);
+    let window_size = width + ":" + height;
+    let cmd =
+        process.platform === "win32"
+        ? "generate_loom.bat "
+        : "./generate_loom.sh ";
+    execute(cmd + window_size, function(output) {
+        console.log(output);
+    });
+}
 
 /* 
  * Smart-select functions
