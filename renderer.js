@@ -661,27 +661,50 @@ loom_selection_cursor_el.onclick = function() {
     this.classList.toggle("active");
 };
 
-GC.selected_tab = "Tab 1";
+GC.selected_tab = "1";
 GC.tabs = {
-    "Tab 1": [],
-    "Tab 2": []
+    "1": [],
+    "2": []
 }
-document.getElementById('tab-select').addEventListener("change", e => {
-    if (e.target.value == "Add Tab") {
-        let tab = document.createElement("option")
-            tab.text = `Tab ${e.target.selectedIndex + 1}`
-            GC.tabs[tab.text] = []
-            tab.selected = true
-            GC.selected_tab = tab.text
-            ctx.clearRect(0, 0, canvas.width, canvas.height)
-            draw(null, null, null, true);
-        return e.srcElement.add(tab, e.target.selectedIndex)
-    } else if (e.target.value == "Display") {
-        return console.log(JSON.stringify(GC.tabs))
-    }
-    GC.selected_tab = e.target.value
+
+function deactivateAllTabs()
+{
+    let tabs = document.querySelectorAll(".tab-item");
+    tabs.forEach(function(tab){
+        tab.classList.remove("active");
+    });
+}
+
+document.querySelector('.tab-group').addEventListener("click", function(e){ 
+    if (e.target.getAttribute("data-tab-action") == "add") {
+        let tab = document.createElement("div");
+
+        var tab_id = (Object.keys(GC.tabs).length + 1).toString();
+
+        tab.classList.add("tab-item");
+        deactivateAllTabs();
+        tab.classList.add("active"); // select the tab
+        tab.setAttribute("data-tab-id", tab_id);
+
+        GC.tabs[tab_id] = []
+        GC.selected_tab = tab_id;
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         draw(null, null, null, true);
+
+        var tab_close_icon = document.createElement("span");
+        tab_close_icon.classList.add("icon", "icon-cancel", "icon-close-tab");
+        tab.appendChild(tab_close_icon);
+        tab.innerHTML += `Workspace ${tab_id}`;
+
+        return e.srcElement.insertAdjacentElement("beforebegin", tab);
+    } 
+
+    deactivateAllTabs();
+    e.target.classList.add("active");
+    var tab_id = e.target.getAttribute('data-tab-id');
+    GC.selected_tab = tab_id;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    draw(null, null, null, true);
 })
 
 /* 
