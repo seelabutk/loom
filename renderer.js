@@ -675,6 +675,15 @@ function deactivateAllTabs()
     });
 }
 
+/* 
+ * Removes the tab, shifts other tabs, and removes all targets
+ * within the tab
+ */
+function removeTab(tab)
+{
+    // TODO
+}
+
 document.querySelector('.tab-group').addEventListener("click", function(e){ 
     if (e.target.getAttribute("data-tab-action") == "add") {
         let tab = document.createElement("div");
