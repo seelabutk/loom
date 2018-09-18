@@ -17,16 +17,18 @@
     <tool-bar type="footer" id='stats' class="toolbar toolbar-footer">
       <!--Screenshot Delay: <input type='text' id='delay'>ms-->
 
-      <tab-group>
-        <tab-item>
+      <div class="tab-group">
+        <div class="tab-item">
           Workspace 1
-        </tab-item>
-        <tab-item>
-          <button action="close"></button>
+        </div>
+        <div class="tab-item">
+          <span class="icon icon-cancel icon-close-tab"></span>
           Workspace 2
-        </tab-item>
-        <tab-item type="fixed" action="add"></tab-item>
-      </tab-group>
+        </div>
+        <div class="tab-item tab-item-fixed" action="add">
+            <span class="icon icon-plus"></span>
+        </div>
+      </div>
 
       <div class="toolbar-actions">
         <button class="loom-tool-selector btn btn-default btn-dropdown">

@@ -440,8 +440,9 @@ function selectTarget(target)
 }
 
 function draw(e, done, draw_selection, tabChange) {
-    ctx.setLineDash([6]);
+    //ctx.setLineDash([5]);
     ctx.strokeStyle = "rgb(200, 200, 200)";
+    ctx.lineWidth = 0.5;
 
     GC.selected_targets = [];
     // render all targets
@@ -453,7 +454,7 @@ function draw(e, done, draw_selection, tabChange) {
                 GC.current_tool == GC.TOOLS.SELECTION_CURSOR &&
                 shapeIsSelected(shape)
            ) {
-            ctx.strokeStyle = "rgb(255, 100, 100)";
+            ctx.strokeStyle = "rgb(255, 50, 50)";
             selectTarget(GC.tabs[GC.selected_tab][i]);
         } else {
             ctx.strokeStyle = "rgb(200, 200, 200)";
@@ -482,7 +483,7 @@ function draw(e, done, draw_selection, tabChange) {
        ) {
         if (GC.current_tool == GC.TOOLS.SELECTION_CURSOR) {
             ctx.setLineDash([1]);
-            ctx.strokeStyle = "rgb(170, 190, 250)";
+            ctx.strokeStyle = "rgb(100, 120, 250)";
         }
         if (!tabChange)
             drawRectangle(GC.shape);
