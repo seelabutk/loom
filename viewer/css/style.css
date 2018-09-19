@@ -15,6 +15,18 @@ body
     left: 0;
     top: 0;
 }
+
+.highlight
+{
+    fill: rgba(246, 230, 80, 0.7);
+    stroke: rgba(250, 240, 80, 0.8);
+}
+
+#overlay
+{
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
 .vjs-waiting 
 {
   visibility: hidden;
@@ -24,3 +36,13 @@ body
 {
   display: none !important;
 } 
+.hide
+{
+    display: none;
+}
+#test
+{
+    position: absolute;
+    left: 0;
+    bottom: 0;
+}

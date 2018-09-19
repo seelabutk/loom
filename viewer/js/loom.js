@@ -25,7 +25,8 @@ class Viewer {
     this.setSize("#video");
     this.setSize("#parallel_video");
     this.setSize("#parallel_video_canvas");
-    this.setSize("#heatmap");
+    this.setSize("#overlay");
+    //this.setSize("#heatmap");
     this.setupVideo("video");
     this.setupVideo("parallel_video");
 
@@ -50,8 +51,8 @@ class Viewer {
     // ...
 
     // set up the heatmap
-    this.heat = simpleheat(document.getElementById("heatmap"));
-    this.heat.max(10);
+    //this.heat = simpleheat(document.getElementById("heatmap"));
+    //this.heat.max(10);
 
     this.setup();
   }
@@ -101,19 +102,26 @@ class Viewer {
       });
     }
 
-    drawInteractionHelper(shape)
+    drawInteractionHelper(target)
     {
+        var shape = target.shape;
         var context = document.getElementById("heatmap").getContext("2d");
         var image = new Image();
+        image._x = shape.centerX;
+        image._y = shape.centerY;
         image.onload = function()
         {
-            context.drawImage(this, 0, 0);
+            context.drawImage(this, this._x, this._y, 32, 32);
         }
-        if (shape.actor == "button")
+        if (target.actor == "hover")
         {
             image.src = "images/button.png";
         }
+    }
 
+    drawInteractionHelper2()
+    {
+        //this.heat.draw();
     }
 
     createInteractionHandler(target) 
@@ -130,13 +138,11 @@ class Viewer {
                     top: target.shape.y,
                     width: target.shape.width,
                     height: target.shape.height,
-                    border: "1px solid rgba(0, 0, 0, 0.0)",
                 });
 
             var centerX = target.shape.left + target.shape.width / 2.0;
             var centerY = target.shape.top + target.shape.height / 2.0;
             this.heat.add([centerX, centerY, 4]);
-            this.drawInteractionHelper(target.shape);
         } 
         else if (target.shape.type == "circ") 
         {
@@ -149,11 +155,9 @@ class Viewer {
                     top: target.shape.centerY - target.shape.radius,
                     width: 2 * target.shape.radius,
                     height: 2 * target.shape.radius,
-                    border: "1px solid rgba(0, 0, 0, 0.0)",
                     borderRadius: "50%"
                 });
             this.heat.add([target.shape.centerX, target.shape.centerY, 4]);
-            this.drawInteractionHelper(target.shape);
 
         } else if (target.shape.type == "poly") {
             let w,
@@ -191,7 +195,7 @@ class Viewer {
                     top: topOffset,
                     left: leftOffset,
                     width: w,
-                    height: h
+                    height: h,
                 });
             let svg = $(
                     document.createElementNS("http://www.w3.org/2000/svg", "svg")
@@ -211,15 +215,20 @@ class Viewer {
             polygon.appendTo(svg);
             svg.appendTo(handler);
 
-            this.heat.add([target.shape.centerX, target.shape.centerY, 4]);
-            this.drawInteractionHelper(target.shape);
-            this.heat.draw();
-            for (let helper of this.config['interaction_helpers'])
+            this.drawInteractionHelper2();
+            //this.heat.add([target.shape.centerX, target.shape.centerY, 4]);
+            /*for (let helper of this.config['interaction_helpers'])
             {
                 var temp_context = heatmap.getContext("2d");
-                temp_context.rect(helper[0], helper[1], helper[2] - helper[0], helper[3] - helper[1]);
+                //temp_context.rect(helper[0], helper[1], helper[2] - helper[0], helper[3] - helper[1]);
+                var dummy_centerX = helper[0] + (helper[2] - helper[0]) / 2.0;
+                var dummy_centerY = helper[1] + (helper[3] - helper[1]) / 2.0;
+                var dummy_target = {};
+                dummy_target.actor = "hover";
+                dummy_target.shape = {centerX: dummy_centerX, centerY: dummy_centerY};
+                this.drawInteractionHelper(dummy_target);
                 temp_context.stroke();
-            }
+            }*/
         }
 
 handler.attr("data-frame", target.frame_no.toString());
@@ -453,4 +462,12 @@ let viewer = null;
 $(document).ready(function() {
   viewer = new Viewer();
   viewer.load("config.json");
+
+  document.getElementById("test").addEventListener("click", function(){
+    overlay.classList.toggle("hide");
+    var all_polygons = document.querySelectorAll(".interaction-handler svg polygon");
+    all_polygons.forEach(function(poly){
+        poly.classList.toggle("highlight");
+    });
+  })
 });

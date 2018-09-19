@@ -17,22 +17,18 @@ function simpleheat(canvas) {
 
 simpleheat.prototype = {
 
-    defaultRadius: 25,
+    defaultRadius: 15,
 
-    /*defaultGradient: {
+    defaultGradient: {
         0.4: 'blue',
         0.6: 'cyan',
         0.7: 'lime',
         0.8: 'yellow',
         1.0: 'red'
-    },*/
+    },
 
     defaultGradient: {
-        0.4: 'black',
-        0.6: 'darkgray',
-        0.7: 'gray',
-        0.8: 'white',
-        1.0: 'white'
+        0.5: '#F6E653',
     },
 
     data: function (data) {
@@ -110,8 +106,9 @@ simpleheat.prototype = {
         var ctx = this._ctx;
 
         ctx.clearRect(0, 0, this._width, this._height);
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(0, 0, this._width, this._height);
+
+        /*ctx.fillStyle = "#000000";
+        ctx.fillRect(0, 0, this._width, this._height);*/
 
         // draw a grayscale heatmap by putting a blurred circle at each data point
         for (var i = 0, len = this._data.length, p; i < len; i++) {
