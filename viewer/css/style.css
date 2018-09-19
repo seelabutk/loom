@@ -22,6 +22,12 @@ body
     stroke: rgba(250, 240, 80, 0.8);
 }
 
+div.highlight
+{
+    background-color: rgba(246, 230, 80, 0.7);
+    border: 1px solid rgba(250, 240, 80, 0.8);
+}
+
 #overlay
 {
     background-color: rgba(0, 0, 0, 0.5);

@@ -26,7 +26,6 @@ class Viewer {
     this.setSize("#parallel_video");
     this.setSize("#parallel_video_canvas");
     this.setSize("#overlay");
-    //this.setSize("#heatmap");
     this.setupVideo("video");
     this.setupVideo("parallel_video");
 
@@ -49,10 +48,6 @@ class Viewer {
     );
 
     // ...
-
-    // set up the heatmap
-    //this.heat = simpleheat(document.getElementById("heatmap"));
-    //this.heat.max(10);
 
     this.setup();
   }
@@ -102,26 +97,25 @@ class Viewer {
       });
     }
 
-    drawInteractionHelper(target)
+    chooseCursor(target, element)
     {
-        var shape = target.shape;
-        var context = document.getElementById("heatmap").getContext("2d");
-        var image = new Image();
-        image._x = shape.centerX;
-        image._y = shape.centerY;
-        image.onload = function()
-        {
-            context.drawImage(this, this._x, this._y, 32, 32);
-        }
-        if (target.actor == "hover")
-        {
-            image.src = "images/button.png";
-        }
-    }
+        var cursor = "auto";
+        if (target.actor == 'hover')
+            cursor = 'cell';
+        else if (target.actor == 'button')
+            cursor = 'pointer';
 
-    drawInteractionHelper2()
-    {
-        //this.heat.draw();
+        // check if the element is a raw DOM el
+        // or a jQuery element
+        if (element.hasOwnProperty("context") && typeof(element.context) != 'undefined')
+        {
+            element.context.style.cursor = cursor;
+        }
+        else if (element.hasOwnProperty("css"))
+        {
+            element = element.css("cursor", cursor);
+        }
+        return element;
     }
 
     createInteractionHandler(target) 
@@ -142,7 +136,8 @@ class Viewer {
 
             var centerX = target.shape.left + target.shape.width / 2.0;
             var centerY = target.shape.top + target.shape.height / 2.0;
-            this.heat.add([centerX, centerY, 4]);
+
+            this.chooseCursor(target, handler);
         } 
         else if (target.shape.type == "circ") 
         {
@@ -157,7 +152,7 @@ class Viewer {
                     height: 2 * target.shape.radius,
                     borderRadius: "50%"
                 });
-            this.heat.add([target.shape.centerX, target.shape.centerY, 4]);
+            this.chooseCursor(target, handler);
 
         } else if (target.shape.type == "poly") {
             let w,
@@ -210,25 +205,11 @@ class Viewer {
             polygon.attr({
                 points: polyString,
                 fill: "transparent",
-                strokeWidth: 5
+                strokeWidth: 5,
             });
+            polygon = this.chooseCursor(target, polygon);
             polygon.appendTo(svg);
             svg.appendTo(handler);
-
-            this.drawInteractionHelper2();
-            //this.heat.add([target.shape.centerX, target.shape.centerY, 4]);
-            /*for (let helper of this.config['interaction_helpers'])
-            {
-                var temp_context = heatmap.getContext("2d");
-                //temp_context.rect(helper[0], helper[1], helper[2] - helper[0], helper[3] - helper[1]);
-                var dummy_centerX = helper[0] + (helper[2] - helper[0]) / 2.0;
-                var dummy_centerY = helper[1] + (helper[3] - helper[1]) / 2.0;
-                var dummy_target = {};
-                dummy_target.actor = "hover";
-                dummy_target.shape = {centerX: dummy_centerX, centerY: dummy_centerY};
-                this.drawInteractionHelper(dummy_target);
-                temp_context.stroke();
-            }*/
         }
 
 handler.attr("data-frame", target.frame_no.toString());
@@ -465,9 +446,15 @@ $(document).ready(function() {
 
   document.getElementById("test").addEventListener("click", function(){
     overlay.classList.toggle("hide");
+
     var all_polygons = document.querySelectorAll(".interaction-handler svg polygon");
     all_polygons.forEach(function(poly){
         poly.classList.toggle("highlight");
     });
+
+    $(".interaction-handler:empty").each(function(){
+        this.classList.toggle("highlight");
+    });
+
   })
 });
