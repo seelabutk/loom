@@ -25,6 +25,7 @@ class Viewer {
     this.setSize("#video");
     this.setSize("#parallel_video");
     this.setSize("#parallel_video_canvas");
+    this.setSize("#heatmap");
     this.setupVideo("video");
     this.setupVideo("parallel_video");
 
@@ -48,6 +49,10 @@ class Viewer {
 
     // ...
 
+    // set up the heatmap
+    this.heat = simpleheat(document.getElementById("heatmap"));
+    this.heat.max(10);
+
     this.setup();
   }
 
@@ -64,12 +69,16 @@ class Viewer {
         g = pixels.data[i + 1],
         b = pixels.data[i + 2];
 
-      if (fastSimilar(r, 255) && fastSimilar(g, 0) && fastSimilar(b, 255)) {
+      if (fastSimilar(r, 255) && fastSimilar(g, 0) && fastSimilar(b, 255)) 
+      {
         pixels.data[i + 3] = 0;
-      } else {
+      } 
+      else 
+      {
         var magenta = [60.3199336, 98.254218, -60.842984];
         var other = rgb2lab([r, g, b]);
-        if (deltaE(magenta, other) < 17) {
+        if (deltaE(magenta, other) < 17) 
+        {
           pixels.data[i + 3] = 0;
         }
       }
@@ -77,112 +86,146 @@ class Viewer {
     return pixels;
   }
 
-  setupVideo(element) {
-    let video = videojs(element).ready(function() {
-      var player = this;
-      videojs.options.children.loadingSpinner = false;
-      player.play();
-      player.pause();
-      player.currentTime(0 / 29);
+    setupVideo(element) {
+      let video = videojs(element).ready(function() {
+          var player = this;
+          videojs.options.children.loadingSpinner = false;
+          player.play();
+          player.pause();
+          player.currentTime(0 / 29);
 
-      player.off("click");
-      player.on("click", function(ev) {
-        ev.preventDefault();
+          player.off("click");
+          player.on("click", function(ev) {
+              ev.preventDefault();
+          });
       });
-    });
-  }
-  /* TODO */
-  createInteractionHandler(target) {
-    let handler;
-    if (target.shape.type == "rect") {
-      handler = $("<div>")
-        .addClass("interaction-handler")
-        .appendTo("body")
-        .css({
-          position: "absolute",
-          left: target.shape.x,
-          top: target.shape.y,
-          width: target.shape.width,
-          height: target.shape.height,
-          border: "1px solid rgba(0, 0, 0, 0.0)",
-          border: "1px solid blue"
-        });
-    } else if (target.shape.type == "circ") {
-      handler = $("<div>")
-        .addClass("interaction-handler")
-        .appendTo("body")
-        .css({
-          position: "absolute",
-          left: target.shape.centerX - target.shape.radius,
-          top: target.shape.centerY - target.shape.radius,
-          width: 2 * target.shape.radius,
-          height: 2 * target.shape.radius,
-          border: "1px solid rgba(0, 0, 0, 0.0)",
-          border: "1px solid blue",
-          borderRadius: "50%"
-        });
-    } else if (target.shape.type == "poly") {
-      let w,
-        h,
-        topOffset,
-        leftOffset,
-        minX = 100000,
-        minY = 100000,
-        maxX = -1,
-        maxY = -1,
-        polyString = "";
-      for (let i = 0; i < target.shape.points.length; i++) {
-        let x = target.shape.points[i].x;
-        let y = target.shape.points[i].y;
-        if (x < minX) minX = x;
-        if (x > maxX) maxX = x;
-        if (y < minY) minY = y;
-        if (y > maxY) maxY = y;
-      }
-      for (let i = 0; i < target.shape.points.length; i++) {
-        let x = target.shape.points[i].x;
-        let y = target.shape.points[i].y;
-        polyString += x - minX + "," + (y - minY);
-        if (i !== target.shape.points.length - 1) polyString += " ";
-      }
-      w = maxX - minX;
-      h = maxY - minY;
-      topOffset = minY;
-      leftOffset = minX;
-      handler = $("<div>")
-        .addClass("interaction-handler")
-        .appendTo("body")
-        .css({
-          position: "absolute",
-          top: topOffset,
-          left: leftOffset,
-          width: w,
-          height: h
-        });
-      let svg = $(
-        document.createElementNS("http://www.w3.org/2000/svg", "svg")
-      );
-      svg.attr({
-        width: w,
-        height: h
-      });
-      let polygon = $(
-        document.createElementNS("http://www.w3.org/2000/svg", "polygon")
-      );
-      polygon.attr({
-        points: polyString,
-        fill: "transparent",
-        stroke: "blue",
-        strokeWidth: 5
-      });
-      polygon.appendTo(svg);
-      svg.appendTo(handler);
-      
     }
 
-    handler.attr("data-frame", target.frame_no.toString());
-    return handler;
-  }
+    drawInteractionHelper(shape)
+    {
+        var context = document.getElementById("heatmap").getContext("2d");
+        var image = new Image();
+        image.onload = function()
+        {
+            context.drawImage(this, 0, 0);
+        }
+        if (shape.actor == "button")
+        {
+            image.src = "images/button.png";
+        }
+
+    }
+
+    createInteractionHandler(target) 
+    {
+        let handler;
+        if (target.shape.type == "rect") 
+        {
+            handler = $("<div>")
+                .addClass("interaction-handler")
+                .appendTo("body")
+                .css({
+                    position: "absolute",
+                    left: target.shape.x,
+                    top: target.shape.y,
+                    width: target.shape.width,
+                    height: target.shape.height,
+                    border: "1px solid rgba(0, 0, 0, 0.0)",
+                });
+
+            var centerX = target.shape.left + target.shape.width / 2.0;
+            var centerY = target.shape.top + target.shape.height / 2.0;
+            this.heat.add([centerX, centerY, 4]);
+            this.drawInteractionHelper(target.shape);
+        } 
+        else if (target.shape.type == "circ") 
+        {
+            handler = $("<div>")
+                .addClass("interaction-handler")
+                .appendTo("body")
+                .css({
+                    position: "absolute",
+                    left: target.shape.centerX - target.shape.radius,
+                    top: target.shape.centerY - target.shape.radius,
+                    width: 2 * target.shape.radius,
+                    height: 2 * target.shape.radius,
+                    border: "1px solid rgba(0, 0, 0, 0.0)",
+                    borderRadius: "50%"
+                });
+            this.heat.add([target.shape.centerX, target.shape.centerY, 4]);
+            this.drawInteractionHelper(target.shape);
+
+        } else if (target.shape.type == "poly") {
+            let w,
+                h,
+                topOffset,
+                leftOffset,
+                minX = 100000,
+                minY = 100000,
+                maxX = -1,
+                maxY = -1,
+                polyString = "";
+            for (let i = 0; i < target.shape.points.length; i++) {
+                let x = target.shape.points[i].x;
+                let y = target.shape.points[i].y;
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+            }
+            for (let i = 0; i < target.shape.points.length; i++) {
+                let x = target.shape.points[i].x;
+                let y = target.shape.points[i].y;
+                polyString += x - minX + "," + (y - minY);
+                if (i !== target.shape.points.length - 1) polyString += " ";
+            }
+            w = maxX - minX;
+            h = maxY - minY;
+            topOffset = minY;
+            leftOffset = minX;
+            handler = $("<div>")
+                .addClass("interaction-handler")
+                .appendTo("body")
+                .css({
+                    position: "absolute",
+                    top: topOffset,
+                    left: leftOffset,
+                    width: w,
+                    height: h
+                });
+            let svg = $(
+                    document.createElementNS("http://www.w3.org/2000/svg", "svg")
+                    );
+            svg.attr({
+                width: w,
+                height: h
+            });
+            let polygon = $(
+                    document.createElementNS("http://www.w3.org/2000/svg", "polygon")
+                    );
+            polygon.attr({
+                points: polyString,
+                fill: "transparent",
+                strokeWidth: 5
+            });
+            polygon.appendTo(svg);
+            svg.appendTo(handler);
+
+            this.heat.add([target.shape.centerX, target.shape.centerY, 4]);
+            this.drawInteractionHelper(target.shape);
+            this.heat.draw();
+            for (let helper of this.config['interaction_helpers'])
+            {
+                var temp_context = heatmap.getContext("2d");
+                temp_context.rect(helper[0], helper[1], helper[2] - helper[0], helper[3] - helper[1]);
+                temp_context.stroke();
+            }
+        }
+
+handler.attr("data-frame", target.frame_no.toString());
+//handler.attr("data-frame", 0);//target.frame_no.toString());
+return handler;
+}
 
   // determine if state can change and change it if it can
   changeState(target_el, video_name, offset) {

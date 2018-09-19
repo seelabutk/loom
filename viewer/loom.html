@@ -11,11 +11,12 @@
         <script src="js/arcball.js"></script>
         <script src="js/tools.js"></script>
         <script src="js/arcball_manager.js"></script>
+        <script src="js/simpleheat.js"></script>
         <script src="js/loom.js"></script>
     </head>
     <body>
     <video id="video" class="video-js" preload="auto" data-setup="{}">
-        <source src="examples/tablaeu/loom.mp4" type='video/mp4'>
+        <source src="videos/loom.mp4" type='video/mp4'>
         <p class="vjs-no-js">
           To view this video please enable JavaScript, and consider upgrading to a web browser that
           <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
@@ -23,13 +24,14 @@
     </video>
 
     <video id="parallel_video" class="video-js" preload="auto" data-setup="{}">
-        <source src="examples/tablaeu/loom.mp4" type='video/mp4'>
+        <source src="videos/loom.mp4" type='video/mp4'>
         <p class="vjs-no-js">
           To view this video please enable JavaScript, and consider upgrading to a web browser that
           <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
         </p>
     </video>
     <canvas id="parallel_video_canvas"></canvas>
+    <canvas id="heatmap"></canvas>
     <script src="http://vjs.zencdn.net/6.1.0/video.js"></script>
 </body>
 </html>

@@ -152,6 +152,10 @@ function runInteraction()
     });
 }
 
+/*
+ * TODO
+ * Shouldn't the width and height be sent too?
+ */
 function exportLoom()
 {
     let width = parseInt(Math.floor(win.getBounds()["width"] / 2) * 2);
@@ -454,7 +458,7 @@ function selectTarget(target)
 function draw(e, done, draw_selection, tabChange) {
     //ctx.setLineDash([5]);
     ctx.strokeStyle = "rgb(200, 200, 200)";
-    ctx.lineWidth = 0.5;
+    ctx.lineWidth = 1;
 
     GC.selected_targets = [];
     // render all targets
