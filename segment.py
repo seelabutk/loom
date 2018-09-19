@@ -28,13 +28,12 @@ sensitivity = sensitivity / 100.0 * 255
 
 im = cv2.imread(filename)
 imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-ret, thresh = cv2.threshold(imgray, sensitivity, 255, 0)
+ret, thresh = cv2.threshold(imgray, sensitivity, 255, cv2.THRESH_BINARY_INV)
 img, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
 filtered_contours = []
 filtered_contours_list = []
 for i, info in enumerate(hierarchy[0]):
-    #if info[2] == -1:
     area = cv2.contourArea(contours[i])
     if area > 20:
         filtered_contours.append(contours[i])
