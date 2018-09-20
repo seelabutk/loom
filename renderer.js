@@ -1040,6 +1040,12 @@ smart_options_el.querySelector(".apply").addEventListener("click", function(){
     var value = parseInt(smart_options_el.querySelector(".slider").value);
     contourSegmentation(false, value, true); 
 });
+smart_options_el.querySelector(".cancel").addEventListener("click", function(){
+  hideSmartSelectionOptions();
+  GC.shape = {};
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  draw();
+});
 
 /*
  * Set up handlers for the magic-target-options
@@ -1052,6 +1058,12 @@ magic_options_el.querySelector(".slider").addEventListener("change", function(){
 magic_options_el.querySelector(".apply").addEventListener("click", function(){
     var value = parseInt(smart_options_el.querySelector(".slider").value);
     magicWand(GC.previous_magic_x, GC.previous_magic_y, value, true); 
+});
+magic_options_el.querySelector(".cancel").addEventListener("click", function(){
+  hideMagicWandOptions();
+  GC.shape = {};
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  draw();
 });
 
 /*
