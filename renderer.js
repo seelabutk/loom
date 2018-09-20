@@ -93,11 +93,7 @@ var menu = Menu.buildFromTemplate([
             {
                 label: "Stop",
                 accelerator: "CmdOrCtrl+K",
-                click: function() {
-                    if (GC.interactor !== null) {
-                        GC.interactor.kill();
-                    }
-                }
+                click: stopInteraction
             },
             {
                 label: "Export Video",
@@ -153,6 +149,15 @@ function runInteraction()
     GC.interactor = execute(cmd + delay, function(output) {
         console.log(output);
     });
+}
+
+/*
+ * Stop automatic interaction externally
+ */
+function stopInteraction() {
+    if (GC.interactor !== null) {
+        GC.interactor.kill();
+    }
 }
 
 /*
@@ -1095,6 +1100,14 @@ grid_options_el.querySelector(".cancel").addEventListener("click", function(){
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   draw();
 });
+
+/*
+ * Set up handlers for the menu buttons (save, stop, export)
+ */
+document.getElementById("loom-save-targets").addEventListener("click", save);
+document.getElementById("loom-run-interaction").addEventListener("click", runInteraction);
+document.getElementById("loom-export-video").addEventListener("click", exportLoom);
+
 
 init();
 
