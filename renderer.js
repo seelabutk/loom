@@ -39,6 +39,7 @@ GC.TOOLS = {
     TARGET_POLYGON: "polygon", 
     TARGET_SMART: "smart",
     TARGET_GRID: "grid",
+    TARGET_MAGIC_WAND: 'magic',
     SELECTION_CURSOR: "cursor"
 }
 
@@ -202,12 +203,12 @@ function handleScreenshot(source, bounds) {
 
         let img = source.thumbnail.crop(bounds);
         fs.writeFile(screenshotPath, img.toPng(), function(error){
-            applySegmentation(error, 50, false);
+            contourSegmentation(error, 50, false);
         });
     }
 }
 
-function applySegmentation(error, sensitivity, apply)
+function contourSegmentation(error, sensitivity, apply)
 {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     draw();
@@ -280,6 +281,97 @@ function changeGridDimensions(widthSegments, heightSegments, spaceBetween) {
   draw();
 }
 
+/* 
+ * Magic wand functions
+ */
+
+function magicWandClick(x, y)
+{
+    win.setOpacity(0);
+
+    var screen_size = electronScreen.getPrimaryDisplay().bounds;
+    screen_size.width;
+    screen_size.height;
+
+    var window_bounds = win.getBounds();
+    var options = { types: ['screen'], thumbnailSize: screen_size };
+    desktopCapturer.getSources(options, function (error, sources) {
+        if (error) console.log(error);
+        sources.forEach(function(source){
+            handleMagicWandScreenshot(source, window_bounds, x, y);
+        });
+    });
+    win.setOpacity(1);
+}
+
+function handleMagicWandScreenshot(source, bounds, x, y) {
+    if (source.name === "Entire screen" || source.name === "Screen 1") {
+        let img = source.thumbnail.crop(bounds);
+        const screenshotPath = "./screenshot.png";
+        fs.writeFile(screenshotPath, img.toPng(), function(error){
+            GC.previous_magic_x = x;
+            GC.previous_magic_y = y;
+            magicWand(x, y, 15, false);
+        });
+    }
+}
+
+function magicWand(x, y, threshold, apply)
+{
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    var magic_wand_options = {};
+    magic_wand_options.x = x;
+    magic_wand_options.y = y;
+    magic_wand_options.threshold = threshold;
+
+    var image_el = new Image(); 
+    image_el.magic_wand_options = magic_wand_options;
+
+    image_el.onload = function()
+    {
+        var magic_wand_options = this.magic_wand_options;
+        var canvas = document.createElement("canvas")
+        var temp_context = canvas.getContext("2d");
+        temp_context.canvas.width = this.width;
+        temp_context.canvas.height = this.height;
+        temp_context.drawImage(this, 0, 0);
+
+        var image_obj = {
+            width: this.width,
+            height: this.height, 
+            bytes: 4,
+            data: temp_context.getImageData(0, 0, this.width, this.height).data
+        };
+
+        mask = MagicWand.floodFill(image_obj, magic_wand_options.x, magic_wand_options.y, magic_wand_options.threshold);
+        var cs = MagicWand.traceContours(mask);
+        cs = MagicWand.simplifyContours(cs, 0, 30);
+        var points = [];
+        for (var i = 0; i < cs.length; i++) {
+            if (cs[i].inner) continue;
+            for (let p of cs[i].points)
+            {
+                points.push(p);
+            }
+        }
+
+        GC.shape = {"type": "poly", "points": points};
+
+        if (apply == true)
+        {
+            addTarget(GC.shape); 
+        }
+
+        // gotta draw otherwise the mouseUp will take over asynchronously and erase things
+        draw(); 
+    }
+    image_el.src = "screenshot.png";
+}
+
+/* 
+ * Initializations
+ */
 function init() {
     canvas.addEventListener("mousedown", mouseDown, false);
     canvas.addEventListener("mouseup", mouseUp, false);
@@ -298,6 +390,7 @@ function init() {
 function mouseDown(e) {
     hideSmartSelectionOptions();
     hideGridSelectionOptions();
+    hideMagicWandOptions();
 
     if (GC.current_tool == GC.TOOLS.TARGET_RECTANGLE || 
             GC.current_tool == GC.TOOLS.TARGET_SMART ||
@@ -391,8 +484,14 @@ function mouseUp(e) {
         smartSelect(bounds);
         showSmartSelectionOptions();     
     }
-    else if (GC.current_tool == GC.TOOLS.TARGET_GRID) {
+    else if (GC.current_tool == GC.TOOLS.TARGET_GRID) 
+    {
         showGridSelectionOptions();
+    }
+    else if (GC.current_tool == GC.TOOLS.TARGET_MAGIC_WAND)
+    {
+        magicWandClick(e.pageX, e.pageY);
+        showMagicWandOptions();
     }
     else if (GC.current_tool == GC.TOOLS.SELECTION_CURSOR)
     {
@@ -493,6 +592,19 @@ function showGridSelectionOptions()
 {
   var grid_options_el = document.querySelector(".loom-grid-target-options")
     grid_options_el.classList.remove("hide");
+
+}
+
+function hideMagicWandOptions()
+{
+    var magic_options_el = document.querySelector(".loom-magic-target-options")
+        magic_options_el.classList.add("hide");
+}
+
+function showMagicWandOptions()
+{
+    var magic_options_el = document.querySelector(".loom-magic-target-options")
+        magic_options_el.classList.remove("hide");
 }
 
 function selectOption(element, value)
@@ -569,15 +681,30 @@ function draw(e, done, draw_selection, tabChange) {
             ctx.strokeStyle = "rgb(100, 120, 250)";
         }
         if (!tabChange)
+        {
             drawRectangle(GC.shape);
+        }
     }
-    if (GC.current_tool == GC.TOOLS.TARGET_CIRCLE && !tabChange) drawCircle(GC.shape);
+
+    if (GC.current_tool == GC.TOOLS.TARGET_MAGIC_WAND)
+    {
+        if (!tabChange)
+        {
+            drawPolygon(GC.shape, null, true);
+        }
+    }
+
+    if (GC.current_tool == GC.TOOLS.TARGET_CIRCLE && !tabChange) 
+        drawCircle(GC.shape);
     if (GC.current_tool == GC.TOOLS.TARGET_POLYGON && !tabChange)
         drawPolygon(GC.shape, e, done);
 
-    if (GC.selected_targets.length == 0) {
+    if (GC.selected_targets.length == 0) 
+    {
         document.querySelector(".loom-target-options").classList.add("hide");
-    } else {
+    } 
+    else 
+    {
         document.querySelector(".loom-target-options").classList.remove("hide");
     }
 }
@@ -719,6 +846,12 @@ const selector_dropdown = Photon.DropDown(selector_dropdown_el, [
             label: "Grid Selection",
             click: function() {
                 chooseSelector(GC.TOOLS.TARGET_GRID);
+            }
+        },
+        {
+            label: "Magic Wand",
+            click: function() {
+                chooseSelector(GC.TOOLS.TARGET_MAGIC_WAND);
             }
         }
 ]);
@@ -900,12 +1033,25 @@ GC.target_options_el.querySelector(".actor").addEventListener(
  */
 var smart_options_el = document.querySelector(".loom-smart-target-options");
 smart_options_el.querySelector(".slider").addEventListener("change", function(){
-    applySegmentation(false, this.value, false); 
+    contourSegmentation(false, this.value, false); 
 });
 
 smart_options_el.querySelector(".apply").addEventListener("click", function(){
     var value = parseInt(smart_options_el.querySelector(".slider").value);
-    applySegmentation(false, value, true); 
+    contourSegmentation(false, value, true); 
+});
+
+/*
+ * Set up handlers for the magic-target-options
+ */
+var magic_options_el = document.querySelector(".loom-magic-target-options");
+magic_options_el.querySelector(".slider").addEventListener("change", function(){
+    magicWand(GC.previous_magic_x, GC.previous_magic_y, this.value, false); 
+});
+
+magic_options_el.querySelector(".apply").addEventListener("click", function(){
+    var value = parseInt(smart_options_el.querySelector(".slider").value);
+    magicWand(GC.previous_magic_x, GC.previous_magic_y, value, true); 
 });
 
 /*

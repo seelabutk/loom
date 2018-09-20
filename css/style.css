@@ -47,24 +47,25 @@ ph-window
     color: #c52121; 
 }
 
-.loom-smart-target-options 
+.loom-smart-target-options, .loom-magic-target-options
 {
-    width: 200px;
+    width: 270px;
     margin: 5px;
 }
 
-.loom-smart-target-options .btn
+.loom-smart-target-options .btn, .loom-magic-target-options .btn
 {
     font-size: 8px;
 }
 
-.loom-smart-target-options .btn-group
+.loom-smart-target-options .btn-group, .loom-magic-target-options .btn-group
 {
     margin-top: -15px;
 }
 
-.loom-smart-target-options .slider
+.loom-smart-target-options .slider, .loom-magic-target-options .slider
 {
+    width: 200px;
     height: 20px;
 }
 
