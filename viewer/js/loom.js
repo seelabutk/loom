@@ -104,6 +104,12 @@ class Viewer {
             cursor = 'cell';
         else if (target.actor == 'button')
             cursor = 'pointer';
+        else if (target.actor == 'slider' || target.actor == 'horizontal-scroll')
+            cursor = 'ew-resize'
+        else if (target.actor == 'arcball')
+            cursor = 'alias'
+        else if (target.actor == 'vertical-slider' || target.actor == 'vertical-scroll')
+            cursor = 'ns-resize'
 
         // check if the element is a raw DOM el
         // or a jQuery element
