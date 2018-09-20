@@ -282,7 +282,15 @@ return handler;
   // another (other) based on its frame number
   findSibling(needle, other) {
     // find parent first so we can access the children
-    let par = this.findByName(other.parent);
+    let par;
+    if (other.parent == "root")
+    {
+        par = this.config;
+    }
+    else
+    {
+        par = this.findByName(other.parent); 
+    }
     if (par == null || !par.hasOwnProperty("children")) {
       return null;
     }
@@ -455,10 +463,25 @@ $(document).ready(function() {
 
     var all_polygons = document.querySelectorAll(".interaction-handler svg polygon");
     all_polygons.forEach(function(poly){
+        var handler = poly.parentElement.parentElement;
+        var target = {frame_no: handler.getAttribute("data-frame")};
+        var current = viewer.current_state;
+        if (viewer.findChild(target, current) == null && 
+            viewer.findSibling(target, current) == null)
+        {
+            return;
+        }
         poly.classList.toggle("highlight");
     });
 
     $(".interaction-handler:empty").each(function(){
+        var target = {frame_no: this.getAttribute("data-frame")};
+        var current = viewer.current_state;
+        if (viewer.findChild(target, current) == null && 
+            viewer.findSibling(target, current) == null)
+        {
+            return;
+        }
         this.classList.toggle("highlight");
     });
 
