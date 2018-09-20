@@ -68,6 +68,11 @@ ph-window
     height: 20px;
 }
 
+.loom-grid-target-options
+{
+  color: black;
+}
+
 #stats
 {
     position: absolute;
