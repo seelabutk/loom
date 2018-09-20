@@ -38,6 +38,7 @@ GC.TOOLS = {
     TARGET_CIRCLE: "circle",
     TARGET_POLYGON: "polygon", 
     TARGET_SMART: "smart",
+    TARGET_GRID: "grid",
     SELECTION_CURSOR: "cursor"
 }
 
@@ -49,6 +50,7 @@ GC.current_tool = GC.TOOLS.SELECTION_CURSOR;
 GC.selected_targets = [];
 GC.target_options_el = document.querySelector(".loom-target-options");
 GC.interactor = null;
+GC.grid = [];
 
 /*
  * Executes an external process
@@ -242,6 +244,42 @@ function applySegmentation(error, sensitivity, apply)
     }
 }
 
+/*
+ * Grid functions
+ */
+
+function changeGridDimensions(widthSegments, heightSegments, spaceBetween) {
+  if (GC.shape == null || GC.shape.type !== "rect") return;
+  
+  GC.grid = [];
+
+  widthSegments = isNaN(widthSegments) ? 1 : widthSegments;
+  heightSegments = isNaN(heightSegments) ? 1 : heightSegments;
+  spaceBetween = isNaN(spaceBetween) ? 0 : spaceBetween;
+
+  const space = spaceBetween !== 0 ? spaceBetween - 1 : 0;
+  const width = Math.round((GC.shape.w - space * (widthSegments - 1)) / widthSegments);
+  const height = Math.round((GC.shape.h - space * (heightSegments - 1)) / heightSegments);
+  const startX = GC.shape.startX;
+  const startY = GC.shape.startY;
+
+  for (let i = 0; i < heightSegments; i++) {
+    for (let j = 0; j < widthSegments; j++) {
+      const shape = {
+        type: "rect",
+        startX: startX + j * width + j * space,
+        startY: startY + i * height + i * space,
+        w: width,
+        h: height
+      }
+
+      GC.grid.push(shape);
+    }
+  }
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  draw();
+}
+
 function init() {
     canvas.addEventListener("mousedown", mouseDown, false);
     canvas.addEventListener("mouseup", mouseUp, false);
@@ -259,9 +297,11 @@ function init() {
 
 function mouseDown(e) {
     hideSmartSelectionOptions();
+    hideGridSelectionOptions();
 
     if (GC.current_tool == GC.TOOLS.TARGET_RECTANGLE || 
             GC.current_tool == GC.TOOLS.TARGET_SMART ||
+            GC.current_tool == GC.TOOLS.TARGET_GRID ||
             GC.current_tool == GC.TOOLS.SELECTION_CURSOR) 
     {
         GC.shape = { type: "rect" };
@@ -274,6 +314,11 @@ function mouseDown(e) {
         if (GC.current_tool == GC.TOOLS.SELECTION_CURSOR)
         {
             GC.selected_targets = [];
+        }
+        
+        if (GC.current_tool == GC.TOOLS.TARGET_GRID)
+        {
+          GC.grid = [];
         }
     } 
     else if (GC.current_tool == GC.TOOLS.TARGET_CIRCLE) 
@@ -346,6 +391,9 @@ function mouseUp(e) {
         smartSelect(bounds);
         showSmartSelectionOptions();     
     }
+    else if (GC.current_tool == GC.TOOLS.TARGET_GRID) {
+        showGridSelectionOptions();
+    }
     else if (GC.current_tool == GC.TOOLS.SELECTION_CURSOR)
     {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -358,6 +406,7 @@ function mouseMove(e) {
     if (GC.drag) {
         if (GC.current_tool == GC.TOOLS.TARGET_RECTANGLE || 
                 GC.current_tool == GC.TOOLS.TARGET_SMART ||
+                GC.current_tool == GC.TOOLS.TARGET_GRID ||
                 GC.current_tool == GC.TOOLS.SELECTION_CURSOR) 
         {
             GC.shape.w = e.pageX - this.offsetLeft - GC.shape.startX;
@@ -434,6 +483,18 @@ function showSmartSelectionOptions()
         smart_options_el.classList.remove("hide");
 }
 
+function hideGridSelectionOptions()
+{
+  var grid_options_el = document.querySelector(".loom-grid-target-options")
+        grid_options_el.classList.add("hide");
+}
+
+function showGridSelectionOptions()
+{
+  var grid_options_el = document.querySelector(".loom-grid-target-options")
+    grid_options_el.classList.remove("hide");
+}
+
 function selectOption(element, value)
 {
     for (var i = 0; i < element.options.length; i++)
@@ -485,6 +546,11 @@ function draw(e, done, draw_selection, tabChange) {
         }
     }
 
+    //render temporary grid targets
+    for (let i = 0, n = GC.grid.length; i < n; i++) {
+      drawRectangle(GC.grid[i]);
+    }
+
     ctx.strokeStyle = "rgb(200, 200, 200)";
 
     if (GC.current_tool == GC.TOOLS.SELECTION_CURSOR && !draw_selection) {
@@ -495,6 +561,7 @@ function draw(e, done, draw_selection, tabChange) {
     if (
             GC.current_tool == GC.TOOLS.TARGET_RECTANGLE ||
             GC.current_tool == GC.TOOLS.TARGET_SMART ||
+            GC.current_tool == GC.TOOLS.TARGET_GRID ||
             GC.current_tool == GC.TOOLS.SELECTION_CURSOR
        ) {
         if (GC.current_tool == GC.TOOLS.SELECTION_CURSOR) {
@@ -646,6 +713,12 @@ const selector_dropdown = Photon.DropDown(selector_dropdown_el, [
             label: "Smart Selection",
             click: function() {
                 chooseSelector(GC.TOOLS.TARGET_SMART);
+            }
+        },
+        {
+            label: "Grid Selection",
+            click: function() {
+                chooseSelector(GC.TOOLS.TARGET_GRID);
             }
         }
 ]);
@@ -833,6 +906,36 @@ smart_options_el.querySelector(".slider").addEventListener("change", function(){
 smart_options_el.querySelector(".apply").addEventListener("click", function(){
     var value = parseInt(smart_options_el.querySelector(".slider").value);
     applySegmentation(false, value, true); 
+});
+
+/*
+ * Set up handlers for grid-target-options
+ */
+var grid_options_el = document.querySelector(".loom-grid-target-options");
+var grid_options_el_children = grid_options_el.querySelectorAll("input");
+grid_options_el_children.forEach(el => {
+    el.addEventListener("input", function(){
+        changeGridDimensions(
+          parseInt(grid_options_el_children[0].value),
+          parseInt(grid_options_el_children[1].value),
+          parseInt(grid_options_el_children[2].value)
+        )
+    })
+});
+
+grid_options_el.querySelector(".apply").addEventListener("click", function(){
+  for (let target of GC.grid) {
+    addTarget(target);
+  }
+  GC.grid = [];
+});
+grid_options_el.querySelector(".cancel").addEventListener("click", function(){
+  hideGridSelectionOptions();
+  grid_options_el_children.forEach(el => el.value = '');
+  GC.grid = [];
+  GC.shape = {};
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  draw();
 });
 
 init();
