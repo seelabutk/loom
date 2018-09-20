@@ -390,6 +390,10 @@ function init() {
         canvas.height = dimensions.height - 15;
         draw(null, null, null, true);
     });
+
+    // The photon sliders need to have their default value
+    // set programmatically
+    document.querySelector(".loom-magic-target-options .slider").value = "15";
 }
 
 function mouseDown(e) {
@@ -1061,7 +1065,7 @@ magic_options_el.querySelector(".slider").addEventListener("change", function(){
 });
 
 magic_options_el.querySelector(".apply").addEventListener("click", function(){
-    var value = parseInt(smart_options_el.querySelector(".slider").value);
+    var value = parseInt(magic_options_el.querySelector(".slider").value);
     magicWand(GC.previous_magic_x, GC.previous_magic_y, value, true); 
 });
 magic_options_el.querySelector(".cancel").addEventListener("click", function(){
