@@ -94,9 +94,9 @@ def clicker(window, target, click=True):
     elif target['shape']['type'] == 'poly':
       mouse.position = (window['x'] + target['shape']['centerX'], \
               window['y'] + target['shape']['centerY'])
+    sleep(0.5)
     if click == True:
         mouse.click(Button.left)
-    sleep(0.5)
     screenshot(window)
 
 

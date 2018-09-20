@@ -53,10 +53,21 @@ GC.target_options_el = document.querySelector(".loom-target-options");
 GC.interactor = null;
 GC.grid = [];
 
+
 /*
  * Executes an external process
  */
 function execute(command, callback) {
+    window.data = "";
+    let execFile = require("child_process").execFile;
+    let commands = command.split(" ");
+    let process = execFile(commands.splice(0, 1)[0], commands);
+}
+
+/*
+ * Spawns an external process
+ */
+function spawn(command, callback) {
     window.data = "";
     let spawn = require("child_process").spawn;
     let commands = command.split(" ");
@@ -144,8 +155,8 @@ function runInteraction()
         !isNaN(parseFloat(delay)) && isFinite(delay) ? " " + delay : " 250";
     let cmd =
         process.platform === "win32"
-        ? "python interact.py ./viewer/config.json 500"
-        : "python interact.py ./viewer/config.json 500";
+        ? "python interact.py ./viewer/config.json 1000"
+        : "python interact.py ./viewer/config.json 1000";
     GC.interactor = execute(cmd + delay, function(output) {
         console.log(output);
     });
@@ -173,7 +184,7 @@ function exportLoom()
         process.platform === "win32"
         ? "generate_loom.bat "
         : "./generate_loom.sh ";
-    execute(cmd + window_size, function(output) {
+    spawn(cmd + window_size, function(output) {
         console.log(output);
     });
 }
@@ -226,7 +237,7 @@ function contourSegmentation(error, sensitivity, apply)
     else 
     {
         let cmd = "python segment.py screenshot.png " + sensitivity.toString();
-        GC.interactor = execute(cmd, function(code, output) {
+        GC.interactor = spawn(cmd, function(code, output) {
             polygons = JSON.parse(output);
             for (var i = 0; i < polygons.length; i++) {
                 var shape = {points: polygons[i].points, type: "poly"};
