@@ -814,7 +814,7 @@ function addTarget(shape) {
         target.actor = actor;
     } else {
         target.type = "Linear"
-            target.actor = "Arcball"
+            target.actor = "Hover"
     }
 
     if (shape.type && shape.type == "poly") {
@@ -829,7 +829,7 @@ function addTarget(shape) {
 
     let name = "Target " + id;
     target.name = name;
-    target.parent = "parent"
+    target.childof = "Parent"
         GC.tabs[GC.selected_tab].push(target);
 
     // add this new target to the selected targets
