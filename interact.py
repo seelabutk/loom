@@ -97,6 +97,8 @@ def clicker(window, target, click=True):
     sleep(0.5)
     if click == True:
         mouse.click(Button.left)
+        sleep(0.1)
+        mouse.position = (0, 0)
     screenshot(window)
 
 

@@ -40,6 +40,7 @@ GC.TOOLS = {
     TARGET_SMART: "smart",
     TARGET_GRID: "grid",
     TARGET_MAGIC_WAND: 'magic',
+    DUPLICATE: 'duplicate',
     SELECTION_CURSOR: "cursor"
 }
 
@@ -160,6 +161,27 @@ function runInteraction()
     GC.interactor = execute(cmd + delay, function(output) {
         console.log(output);
     });
+}
+
+/* 
+ * Duplicate the selected targets and paste them
+ * in a new workspace
+ */
+function duplicateTargets()
+{
+    var temp = GC.selected_targets;
+    // addTab draws and draw removes all selections
+    // so gotta save them first
+    addTab(); 
+    GC.selected_targets = temp;
+    for (let target of GC.selected_targets)
+    {
+        var cloned = JSON.parse(JSON.stringify(target));
+        let id = GC.target_counter++;
+        cloned.name = "Target " + id;
+        GC.tabs[GC.selected_tab].push(cloned);
+        draw();
+    } 
 }
 
 /*
@@ -914,28 +936,34 @@ function removeTab(tab)
     // TODO
 }
 
+function addTab()
+{
+    let tab = document.createElement("div");
+
+    var tab_id = (Object.keys(GC.tabs).length + 1).toString();
+
+    tab.classList.add("tab-item");
+    deactivateAllTabs();
+    tab.classList.add("active"); // select the tab
+    tab.setAttribute("data-tab-id", tab_id);
+
+    GC.tabs[tab_id] = []
+    GC.selected_tab = tab_id;
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    draw(null, null, null, true);
+
+    var tab_close_icon = document.createElement("span");
+    tab_close_icon.classList.add("icon", "icon-cancel", "icon-close-tab");
+    tab.appendChild(tab_close_icon);
+    tab.innerHTML += `Workspace ${tab_id}`;
+    
+    var add_button = document.querySelector("div[data-tab-action='add']");
+    return add_button.insertAdjacentElement("beforebegin", tab);
+}
+
 document.querySelector('.tab-group').addEventListener("click", function(e){ 
     if (e.target.getAttribute("data-tab-action") == "add") {
-        let tab = document.createElement("div");
-
-        var tab_id = (Object.keys(GC.tabs).length + 1).toString();
-
-        tab.classList.add("tab-item");
-        deactivateAllTabs();
-        tab.classList.add("active"); // select the tab
-        tab.setAttribute("data-tab-id", tab_id);
-
-        GC.tabs[tab_id] = []
-        GC.selected_tab = tab_id;
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
-        draw(null, null, null, true);
-
-        var tab_close_icon = document.createElement("span");
-        tab_close_icon.classList.add("icon", "icon-cancel", "icon-close-tab");
-        tab.appendChild(tab_close_icon);
-        tab.innerHTML += `Workspace ${tab_id}`;
-
-        return e.srcElement.insertAdjacentElement("beforebegin", tab);
+        return addTab();
     } 
 
     deactivateAllTabs();
@@ -1119,6 +1147,7 @@ grid_options_el.querySelector(".cancel").addEventListener("click", function(){
 /*
  * Set up handlers for the menu buttons (save, stop, export)
  */
+document.getElementById("loom-duplicate-targets").addEventListener("click", duplicateTargets);
 document.getElementById("loom-save-targets").addEventListener("click", save);
 document.getElementById("loom-run-interaction").addEventListener("click", runInteraction);
 document.getElementById("loom-export-video").addEventListener("click", exportLoom);
