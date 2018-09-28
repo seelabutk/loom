@@ -22,27 +22,28 @@ def to_dicts(lst):
         tmp.append({"x": i[0], "y": i[1]})
     return {"points": tmp}
 
-filename = sys.argv[1]
-sensitivity = int(sys.argv[2])
-sensitivity = sensitivity / 100.0 * 255
+if __name__ == '__main__':
+    filename = sys.argv[1]
+    sensitivity = int(sys.argv[2])
+    sensitivity = sensitivity / 100.0 * 255
 
-im = cv2.imread(filename)
-imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-ret, thresh = cv2.threshold(imgray, sensitivity, 255, cv2.THRESH_BINARY_INV)
-cv2.imwrite('thresh.png', thresh)
-img, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
+    im = cv2.imread(filename)
+    imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+    ret, thresh = cv2.threshold(imgray, sensitivity, 255, cv2.THRESH_BINARY_INV)
+    cv2.imwrite('thresh.png', thresh)
+    img, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
 
-filtered_contours = []
-filtered_contours_list = []
-for i, info in enumerate(hierarchy[0]):
-    area = cv2.contourArea(contours[i])
-    if area > 20:
-        filtered_contours.append(contours[i])
-        filtered_contours_list.append(to_dicts(clean_list(contours[i])))
+    filtered_contours = []
+    filtered_contours_list = []
+    for i, info in enumerate(hierarchy[0]):
+        area = cv2.contourArea(contours[i])
+        if area > 20:
+            filtered_contours.append(contours[i])
+            filtered_contours_list.append(to_dicts(clean_list(contours[i])))
 
-filtered_contours_list = close_polygons(filtered_contours_list)
-print json.dumps(filtered_contours_list)
-cv2.drawContours(im, contours, -1, (0,0,0), 1)
-cv2.imwrite("output.png", im)
+    filtered_contours_list = close_polygons(filtered_contours_list)
+    print json.dumps(filtered_contours_list)
+    cv2.drawContours(im, contours, -1, (0,0,0), 1)
+    cv2.imwrite("output.png", im)
 
-exit(0)
+    exit(0)

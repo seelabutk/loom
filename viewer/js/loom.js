@@ -117,7 +117,7 @@ class Viewer {
         {
             element.context.style.cursor = cursor;
         }
-        else if (element.hasOwnProperty("css"))
+        else if (typeof(element.css) !== 'undefined')
         {
             element = element.css("cursor", cursor);
         }
@@ -126,11 +126,15 @@ class Viewer {
 
     createInteractionHandler(target) 
     {
-        let handler;
+        // Wrapper wraps the svg. In the case of circles and rectangles
+        // wrapper is also the event handler. In case of polygons,
+        // wrapper > svg > polygon will be the event handler. 
+        // Wrapper is the div that stores the data-frame property.
+        let wrapper; 
         if (target.shape.type == "rect") 
         {
-            handler = $("<div>")
-                .addClass("interaction-handler")
+            wrapper = $("<div>")
+                .addClass("loom-target")
                 .appendTo("body")
                 .css({
                     position: "absolute",
@@ -143,12 +147,12 @@ class Viewer {
             var centerX = target.shape.left + target.shape.width / 2.0;
             var centerY = target.shape.top + target.shape.height / 2.0;
 
-            this.chooseCursor(target, handler);
+            this.chooseCursor(target, wrapper);
         } 
         else if (target.shape.type == "circ") 
         {
-            handler = $("<div>")
-                .addClass("interaction-handler")
+            wrapper = $("<div>")
+                .addClass("loom-target")
                 .appendTo("body")
                 .css({
                     position: "absolute",
@@ -158,9 +162,12 @@ class Viewer {
                     height: 2 * target.shape.radius,
                     borderRadius: "50%"
                 });
-            this.chooseCursor(target, handler);
+            
+            this.chooseCursor(target, wrapper);
+        }
 
-        } else if (target.shape.type == "poly") {
+        else if (target.shape.type == "poly") 
+        {
             let w,
                 h,
                 topOffset,
@@ -188,8 +195,8 @@ class Viewer {
             h = maxY - minY;
             topOffset = minY;
             leftOffset = minX;
-            handler = $("<div>")
-                .addClass("interaction-handler")
+            wrapper = $("<div>")
+                .addClass("loom-target")
                 .appendTo("body")
                 .css({
                     position: "absolute",
@@ -198,6 +205,7 @@ class Viewer {
                     width: w,
                     height: h,
                 });
+
             let svg = $(
                     document.createElementNS("http://www.w3.org/2000/svg", "svg")
                     );
@@ -215,12 +223,11 @@ class Viewer {
             });
             polygon = this.chooseCursor(target, polygon);
             polygon.appendTo(svg);
-            svg.appendTo(handler);
+            svg.appendTo(wrapper);
         }
 
-handler.attr("data-frame", target.frame_no.toString());
-//handler.attr("data-frame", 0);//target.frame_no.toString());
-return handler;
+        wrapper.attr("data-frame", target.frame_no.toString());
+        return wrapper;
 }
 
   // determine if state can change and change it if it can
@@ -245,19 +252,19 @@ return handler;
       video.currentTime((frame + 1 + offset) / this.fps);
     }
 
-    $(".interaction-handler").each(function() {
+    $(".loom-target").each(function() {
       $(this).css("z-index", 100);
     });
     if (this.current_state.hasOwnProperty("children")) {
       for (var i = 0; i < this.current_state.children.length; i++) {
         let frame = this.current_state.children[i].frame_no;
-        $(".interaction-handler[data-frame=" + frame + "]").each(function() {
-          $(this).css("z-index", 1000);
+        $(".loom-target[data-frame=" + frame + "]").each(function() {
+                $(this).css("z-index", 1000);
         });
       }
     } else {
-      /*let frame = this.current_state.frame_no;
-            $(".interaction-handler[data-frame=]" + frame + "]").each(function(){
+          /*let frame = this.current_state.frame_no;
+            $(".loom-target[data-frame=]" + frame + "]").each(function(){
                 $(this).css("z-index", 1000);
             });*/
     }
@@ -313,131 +320,162 @@ return handler;
     return null;
   }
 
-  traverse(target) {
+getEventHandlingElement(target_type, wrapper)
+{
+    let handler;
+    if (target_type == "poly") 
+    {
+        handler = wrapper.find("svg").find("polygon");
+    }
+    else
+    {
+        handler = wrapper;
+    }
+    return handler;
+}
+
+traverse(target) {
     if (target.name != "root") {
-      if (target.type == "parallel" && target.actor == "button") {
-        let handler = this.createInteractionHandler(target);
+        let wrapper = this.createInteractionHandler(target);
+        let handler = this.getEventHandlingElement(target.shape.type, wrapper);
         this.targets[target.frame_no] = target;
-        if (target.shape.type == "poly") handler = handler.find("svg").find("polygon");
-        handler.on(
-          "click",
-          function(e) {
-            let arg = e.currentTarget;
-            if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
-            this.changeState(arg, "parallel_video");
-          }.bind(this)
-        );
-      }
-      if (target.type == "linear" && target.actor == "button") {
-        let handler = this.createInteractionHandler(target);
-        this.targets[target.frame_no] = target;
-        if (target.shape.type == "poly") handler = handler.find("svg").find("polygon");
-        handler.on(
-          "click",
-          function(e) {
-            let arg = e.currentTarget;
-            this.clearParallelVideoCanvas();
-            if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
-            this.changeState(arg, "video");
-          }.bind(this)
-        );
-      }
-      if (target.type == "linear" && target.actor == "hover") {
-        let handler = this.createInteractionHandler(target);
-        this.targets[target.frame_no] = target;
-        if (target.shape.type == "poly") handler = handler.find("svg").find("polygon");
-        handler.on(
-          "mouseover",
-          function(e) {
-            let arg = e.currentTarget;
-            this.clearParallelVideoCanvas();
-            if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
-            this.changeState(arg, "video", 0);
-          }.bind(this)
-        );
-      }
 
-      if (target.type == "linear" && target.actor == "slider") {
-        let handler = this.createInteractionHandler(target);
-        this.targets[target.frame_no] = target;
-        if (target.shape.type == "poly") handler = handler.find("svg").find("polygon");
-        handler.on(
-          "mousemove",
-          function(e) {
-            let arg = e.currentTarget;
-            if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
-            var target_offset = $(arg).offset();
-            var target_width = $(arg).outerWidth();
-            var rel_x = e.pageX - target_offset.left;
-            var step_size = target_width / 10;
-            var offset = rel_x / step_size;
+        if (target.type == "parallel" && target.actor == "button") 
+        {
+            handler.on("click", function(e) {
+                let arg = e.currentTarget;
+                if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
+                this.changeState(arg, "parallel_video");
+            }.bind(this));
+        }
 
-            this.clearParallelVideoCanvas();
-            this.changeState(arg, "video", offset);
-          }.bind(this)
-        );
-      }
+        if (target.type == "linear" && target.actor == "button") 
+        {
+            handler.on( "click", function(e) {
+                let arg = e.currentTarget;
+                this.clearParallelVideoCanvas();
+                if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
+                this.changeState(arg, "video");
+            }.bind(this));
 
-      if (target.type == "linear" && target.actor == "drag") {
-        let handler = this.createInteractionHandler(target);
-        this.targets[target.frame_no] = target;
-        if (target.shape.type == "poly") handler = handler.find("svg").find("polygon");
-        handler.on(
-          "mousemove",
-          function(e) {
-            let arg = e.currentTarget;
-            if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
-            var target_offset = $(arg).offset();
-            var target_height = $(arg).outerHeight();
-            var rel_y = e.pageY - target_offset.top;
-            var step_size = target_height / 10;
-            var offset = rel_y / step_size;
+            // this target isn't responsible for a mouseover
+            // hide it and send another event in case there's something under this 
+            // element
+            handler.on("mouseover", function(e){
+                var target = e.currentTarget;
+                console.log(e);
+                if (e.target.tagName == "polygon") 
+                {
+                    target = e.currentTarget.parentElement.parentElement;
+                }
 
-            this.clearParallelVideoCanvas();
-            this.changeState(e.currentTarget, "video", offset);
-          }.bind(this)
-        );
-      }
+                target.style.display = "none"; 
+                var temp_event = new Event('mouseover');
 
-      if (target.type == "linear" && target.actor == "arcball") {
-        let handler = this.createInteractionHandler(target);
-        this.targets[target.frame_no] = target;
-        if (target.shape.type == "poly") handler = handler.find("svg").find("polygon");
+                // the alternative element under the previous target
+                var alt_target = document.elementFromPoint(e.pageX, e.pageY);
+                alt_target.dispatchEvent(temp_event);
+                target.style.display = "block";
+            });
+        }
 
-        var self = this;
-        var arcball = $(handler).ArcballManager({
-          width: target.shape.width,
-          height: target.shape.height,
-          frame_offset: parseInt(target["frame_no"]),
-          interaction_callback: function() {
-            self.changeState(handler[0], "video");
-            self.clearParallelVideoCanvas();
-          }
-        });
-      }
+        if (target.type == "linear" && target.actor == "hover") {
+            handler.on( "mouseover", function(e) {
+                let arg = e.currentTarget;
+                this.clearParallelVideoCanvas();
+                if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
+                this.changeState(arg, "video", 0);
+            }.bind(this));
+
+            // this target isn't responsible for a click
+            // hide it and send another event in case there's something under this 
+            // element
+            handler.on("click", function(e){
+                var target = e.currentTarget;
+                console.log(e);
+                if (e.target.tagName == "polygon") 
+                {
+                    target = e.currentTarget.parentElement.parentElement;
+                }
+
+                target.style.display = "none"; 
+                var temp_event = new Event('click');
+
+                // the alternative element under the previous target
+                var alt_target = document.elementFromPoint(e.pageX, e.pageY);
+                alt_target.dispatchEvent(temp_event);
+                target.style.display = "block";
+            });
+        }
+
+        if (target.type == "linear" && target.actor == "slider") {
+            handler.on("mousemove", function(e) {
+                let arg = e.currentTarget;
+                if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
+                var target_offset = $(arg).offset();
+                var target_width = $(arg).outerWidth();
+                var rel_x = e.pageX - target_offset.left;
+                var step_size = target_width / 10;
+                var offset = rel_x / step_size;
+
+                this.clearParallelVideoCanvas();
+                this.changeState(arg, "video", offset);
+            }.bind(this));
+        }
+
+        if (target.type == "linear" && target.actor == "drag") {
+            handler.on("mousemove", function(e) {
+                let arg = e.currentTarget;
+                if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
+                var target_offset = $(arg).offset();
+                var target_height = $(arg).outerHeight();
+                var rel_y = e.pageY - target_offset.top;
+                var step_size = target_height / 10;
+                var offset = rel_y / step_size;
+
+                this.clearParallelVideoCanvas();
+                this.changeState(e.currentTarget, "video", offset);
+            }.bind(this));
+        }
+
+        if (target.type == "linear" && target.actor == "arcball") {
+            var self = this;
+            var arcball = $(handler).ArcballManager({
+                width: target.shape.width,
+                height: target.shape.height,
+                frame_offset: parseInt(target["frame_no"]),
+                interaction_callback: function() {
+                    self.changeState(handler[0], "video");
+                    self.clearParallelVideoCanvas();
+                }
+            });
+        }
     }
+
     if (target.hasOwnProperty("children")) {
-      for (var i = 0; i < target.children.length; i++) {
-        this.traverse(target.children[i]);
-      }
+        for (var i = 0; i < target.children.length; i++) {
+            this.traverse(target.children[i]);
+        }
     }
-  }
+}
 
-  setup() {
+setup()
+{
     this.current_state = this.config;
     this.traverse(this.config);
-  }
+}
 
-  clearParallelVideoCanvas() {
+clearParallelVideoCanvas() 
+{
     let canvas = document.getElementById("parallel_video_canvas");
     let context = canvas.getContext("2d");
     context.clearRect(
-      0,
-      0,
-      this.config.window.width,
-      this.config.window.height
+        0,
+        0,
+        this.config.window.width,
+        this.config.window.height
     );
-  }
+}
 
   setSize(element) {
     $(element)
@@ -461,7 +499,7 @@ $(document).ready(function() {
   document.getElementById("test").addEventListener("click", function(){
     overlay.classList.toggle("hide");
 
-    var all_polygons = document.querySelectorAll(".interaction-handler svg polygon");
+    var all_polygons = document.querySelectorAll(".loom-target svg polygon");
     all_polygons.forEach(function(poly){
         var handler = poly.parentElement.parentElement;
         var target = {frame_no: handler.getAttribute("data-frame")};
@@ -474,7 +512,7 @@ $(document).ready(function() {
         poly.classList.toggle("highlight");
     });
 
-    $(".interaction-handler:empty").each(function(){
+    $(".loom-target:empty").each(function(){
         var target = {frame_no: this.getAttribute("data-frame")};
         var current = viewer.current_state;
         if (viewer.findChild(target, current) == null && 
