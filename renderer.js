@@ -665,8 +665,9 @@ function selectTarget(target)
     GC.selected_targets.push(target);
     GC.target_options_el.setAttribute("data-id", target.id);
     GC.target_options_el.querySelector(".name").value = target.name;
+    GC.target_options_el.querySelector(".description").value = target.description;
+
     selectOption(GC.target_options_el.querySelector(".childof"), target.childof);
-    selectOption(GC.target_options_el.querySelector(".type"), target.type);
     selectOption(GC.target_options_el.querySelector(".actor"), target.actor);
 }
 
@@ -813,8 +814,8 @@ function addTarget(shape) {
         target.type = type;
         target.actor = actor;
     } else {
-        target.type = "Linear"
-            target.actor = "Hover"
+        //target.type = "Linear"
+        target.actor = "Hover"
     }
 
     if (shape.type && shape.type == "poly") {
@@ -829,6 +830,7 @@ function addTarget(shape) {
 
     let name = "Target " + id;
     target.name = name;
+    target.description = "Description";
     target.childof = "Parent"
         GC.tabs[GC.selected_tab].push(target);
 
@@ -1050,7 +1052,20 @@ GC.target_options_el.querySelector(".childof").addEventListener(
             }
         });
 
-GC.target_options_el.querySelector(".type").addEventListener(
+GC.target_options_el.querySelector(".description").addEventListener(
+    "change",
+    function(e) {
+        for (var j = 0; j < GC.selected_targets.length; j++) {
+            for (var i = 0; i < GC.tabs[GC.selected_tab].length; i++) {
+                let target = GC.tabs[GC.selected_tab][i];
+                if (target.id == GC.selected_targets[j].id) {
+                    target.description = this.value;
+                }
+            }
+        }  
+    });
+
+/*GC.target_options_el.querySelector(".type").addEventListener(
         "change",
         function(e) {
             for (var j = 0; j < GC.selected_targets.length; j++) {
@@ -1062,6 +1077,7 @@ GC.target_options_el.querySelector(".type").addEventListener(
                 }
             }
         });
+*/
 
 GC.target_options_el.querySelector(".actor").addEventListener(
         "change",
