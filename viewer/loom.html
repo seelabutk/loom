@@ -14,11 +14,12 @@
         <script src="js/arcball_manager.js"></script>
         <script src="js/simpleheat.js"></script>
         <script src="js/fuse.min.js"></script>
+        <script src="js/jquery.twinkle-0.8.0.min.js"></script>
         <script src="js/loom.js"></script>
     </head>
     <body>
     <video id="video" class="video-js" preload="auto" data-setup="{}">
-        <source src="videos/24254.mp4" type='video/mp4'>
+        <source src="videos/28341.mp4" type='video/mp4'>
         <p class="vjs-no-js">
           To view this video please enable JavaScript, and consider upgrading to a web browser that
           <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
@@ -26,7 +27,7 @@
     </video>
 
     <video id="parallel_video" class="video-js" preload="auto" data-setup="{}">
-        <source src="videos/24254.mp4" type='video/mp4'>
+        <source src="videos/28341.mp4" type='video/mp4'>
         <p class="vjs-no-js">
           To view this video please enable JavaScript, and consider upgrading to a web browser that
           <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
@@ -37,7 +38,8 @@
 
     <div id="loom-menu">
         <span class="title">Loom</span>
-        <span class="text">Hints:</span><input type="checkbox" id="test" class="apple-switch btn-helper btn btn-default">
+        <span class="text">Hints:</span><input type="checkbox" class="apple-switch btn-helper btn btn-default">
+        <canvas class="minimap"></canvas>
         <input type="text" class="form-control input-search" placeholder="Search">
 		<table class="table-striped search-results-table">
 		  <thead>

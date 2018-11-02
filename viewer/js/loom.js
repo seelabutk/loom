@@ -1,3 +1,8 @@
+/* 
+ *
+ * The Loom Viewer Class 
+ *
+ * */
 class Viewer {
     constructor() {
         this.targets = {}; // a linear representation of the targets keyed with their frame_no
@@ -28,7 +33,6 @@ class Viewer {
         this.setSize("#overlay");
         this.setupVideo("video");
         this.setupVideo("parallel_video");
-        this.setupLoomMenu("#loom-menu");
 
         let parallel_video_el = document.querySelector("#parallel_video>video");
 
@@ -51,6 +55,7 @@ class Viewer {
         // ...
 
         this.setup();
+        this.setupLoomMenu("#loom-menu");
     }
 
     removeMagenta(pixels) {
@@ -96,6 +101,8 @@ class Viewer {
                 width: menu_width,
                 height: this.config.window.height
             });
+
+        this.drawMinimap();
     }
 
     setupVideo(element) {
@@ -246,6 +253,68 @@ class Viewer {
         return wrapper;
     }
 
+    drawMinimap()
+    {
+        var canvas = document.querySelector(".minimap");
+        var width = 100;
+        var ratio = 1.0 * width / this.config.window.width;
+        var height = this.config.window.height * ratio;
+
+        canvas.width = width;
+        canvas.height = height;
+
+        var context = canvas.getContext("2d");
+        context.fillStyle = "#cccccc";
+        context.fillRect(0, 0, width, height);
+
+        // draw a mini version of every target
+        context.fillStyle = "#aaaaaa";
+        for (var i in this.targets)
+        {
+            var target = this.targets[i];
+            if (this.findChild(target, this.current_state) == null &&
+                this.findSibling(target, this.current_state) == null &&
+                target.parent != "root")
+            {
+                continue;
+            }
+
+            if (target.shape.type == "rect")
+            {
+                context.fillRect(
+                    target.shape.x * ratio, 
+                    target.shape.y * ratio, 
+                    target.shape.width * ratio, 
+                    target.shape.height * ratio
+                );
+            }
+
+            if (target.shape.type == "circ")
+            {
+                context.beginPath();
+                context.arc(target.shape.centerX * ratio, 
+                    target.shape.centerY * ratio, 
+                    target.shape.radius * ratio,
+                    0, 
+                    2 * Math.PI);
+                context.fill();
+            }
+
+            if (target.shape.type == "poly")
+            {
+                context.beginPath();
+                context.moveTo(target.shape.points[0].x * ratio, target.shape.points[0].y * ratio);
+                for (var j = 1; j < target.shape.points.length; j++) 
+                {
+                    context.lineTo(target.shape.points[j].x * ratio, 
+                        target.shape.points[j].y * ratio);
+                }
+                context.closePath();
+                context.fill();
+            }
+        }
+    }
+
     gotoRoot()
     {
         var frame = 0;
@@ -288,6 +357,9 @@ class Viewer {
                 $(this).css("z-index", 1000);
             });*/
         }
+
+        // update the minimap
+        this.drawMinimap();
     }
 
     // determine if state can change and change it if it can
@@ -560,16 +632,17 @@ $(document).ready(function() {
     viewer = new Viewer();
     viewer.load("config.json");
 
-    document.getElementById("test").addEventListener("click", function(){
+    document.querySelector(".btn-helper").addEventListener("click", function(){
         overlay.classList.toggle("hide");
 
         var all_polygons = document.querySelectorAll(".loom-target svg polygon");
         all_polygons.forEach(function(poly){
             var handler = poly.parentElement.parentElement;
-            var target = {frame_no: handler.getAttribute("data-frame")};
+            var target = viewer.targets[parseInt(handler.getAttribute("data-frame"))];
             var current = viewer.current_state;
             if (viewer.findChild(target, current) == null && 
-                viewer.findSibling(target, current) == null)
+                viewer.findSibling(target, current) == null &&
+                target.parent != "root")
             {
                 return;
             }
@@ -577,10 +650,11 @@ $(document).ready(function() {
         });
 
         $(".loom-target:empty").each(function(){
-            var target = {frame_no: this.getAttribute("data-frame")};
+            var target = viewer.targets[parseInt(this.getAttribute("data-frame"))];
             var current = viewer.current_state;
             if (viewer.findChild(target, current) == null && 
-                viewer.findSibling(target, current) == null)
+                viewer.findSibling(target, current) == null &&
+                target.parent != "root")
             {
                 return;
             }
@@ -619,10 +693,21 @@ $(document).ready(function() {
         else
         {
             var parent = viewer.findByName(target.parent);
-            console.log(target, parent);
             viewer.changeStateWithFrameNo(parent.frame_no, "video");
         }
 
+        // give a hint about the whereabouts of the target
+        var el = $(".loom-target[data-frame=" + target.frame_no + "]");
+        console.log(target, el);
+
+        var options = {
+            'effect': 'drops',
+            'effectOptions': {
+                'color': 'rgba(0,0,255,0.5)',
+                'radius': 100
+            }
+        };
+        el.twinkle(options);
     });
 });
 
