@@ -21,6 +21,8 @@ module.exports = {
 
             var id = targets[i].id;
             var name = targets[i].name.toLowerCase();
+            var description = targets[i].description.toLowerCase();
+
             var type = "linear"; //menu.querySelector(".type").value.toLowerCase();
             var actor = targets[i].actor.toLowerCase();
             var parent = targets[i].childof.toLowerCase();
@@ -61,6 +63,7 @@ module.exports = {
             var obj = {
                 id: id,
                 name: name,
+                description: description,
                 type: type,
                 actor: actor,
                 parent: parent,

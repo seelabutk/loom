@@ -8,12 +8,72 @@ body
     left: 0;
     top: 0;
     opacity: 0.0;
+    float: left;
 }
 #parallel_video_canvas
 {
     position: absolute;
     left: 0;
     top: 0;
+}
+
+#loom-menu
+{
+    border-radius: 0 10px 10px 0;
+    background-color: #7B8792;
+    border-left: 5px solid #5a6268;
+    width: 120px;
+    height: 100%; 
+    z-index: 10000;
+    position: absolute;
+    text-align: center;
+}
+
+table tr:last-child th:first-child {
+    border-radius: 5px 5px 0 0;
+}
+
+table tr:last-child td:last-child {
+    border-radius: 0 0 5px 5px;
+}
+
+table td
+{
+    cursor: pointer;
+}
+
+.search-results-table
+{
+    width: 100px;
+    margin: 10px auto;
+}
+
+.input-search
+{
+    width: 100px;  
+    margin: 0 auto;
+    margin-top: 10px;
+    height: 10px;
+}
+
+.btn-helper
+{
+    width: 100px;
+    margin: 0 auto;
+    display: inherit;
+}
+
+.title
+{
+    font-family: Helvetica, Tahoma, Arial;
+    font-size: 12px;
+    color: #eee;
+    display: inline-block;
+    padding: 5px 0;
+    text-align: center;
+    width: 100%;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 10px;
 }
 
 .highlight
@@ -46,9 +106,48 @@ div.highlight
 {
     display: none;
 }
-#test
+
+span.text
 {
-    position: absolute;
-    left: 0;
-    bottom: 0;
+    display: inline-block;
+    margin-right: 10px;
+    vertical-align: middle;
+    color: #eee;
+}
+
+input.apple-switch {
+	position: relative;
+	-webkit-appearance: none;
+	outline: none;
+	width: 50px;
+	height: 30px;
+	background-color: #fff;
+	border: 1px solid #D9DADC;
+	border-radius: 50px;
+	box-shadow: inset -20px 0 0 0 #fff;
+    display: inline-block;
+    transition: all .2s linear 0s;
+}
+
+input.apple-switch:after {
+	content: "";
+	position: absolute;
+	top: 1px;
+	left: 1px;
+	background: transparent;
+	width: 26px;
+	height: 26px;
+	border-radius: 50%;
+	box-shadow: 2px 4px 6px rgba(0,0,0,0.2);
+    transition: all .2s linear 0s;
+}
+
+input.apple-switch:checked {
+	box-shadow: inset 20px 0 0 0 #4ed164;
+	border-color: #4ed164;
+}
+
+input.apple-switch:checked:after {
+	left: 20px;
+	box-shadow: -2px 4px 3px rgba(0,0,0,0.05);
 }

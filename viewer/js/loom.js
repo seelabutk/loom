@@ -1,100 +1,116 @@
 class Viewer {
-  constructor() {
-    this.targets = {}; // a linear representation of the targets
-    this.fps = 30;
-  }
-
-  load(config_filename) {
-    this.config_filename = config_filename;
-    return fetch(this.config_filename)
-      .then(response => response.text())
-      .then(config => this.init(config));
-  }
-
-  init(config) {
-    this.config = JSON.parse(config);
-
-    let window_div = $("<div>")
-      .addClass("window")
-      .appendTo("body");
-
-    window_div.on("click", this.clearParallelVideoCanvas.bind(this));
-
-    // set the window size, video size, and parallel video size to be equal
-    this.setSize(window_div);
-    this.setSize("#video");
-    this.setSize("#parallel_video");
-    this.setSize("#parallel_video_canvas");
-    this.setSize("#overlay");
-    this.setupVideo("video");
-    this.setupVideo("parallel_video");
-
-    let parallel_video_el = document.querySelector("#parallel_video>video");
-
-    parallel_video_el.addEventListener(
-      "seeked",
-      function() {
-        var canvas = document.getElementById("parallel_video_canvas");
-        var context = canvas.getContext("2d");
-        var width = this.config.window.width;
-        var height = this.config.window.height;
-        context.drawImage(parallel_video_el, 0, 0, width, height);
-        var pixels = context.getImageData(0, 0, width, height);
-
-        pixels = this.removeMagenta(pixels);
-
-        context.putImageData(pixels, 0, 0);
-      }.bind(this)
-    );
-
-    // ...
-
-    this.setup();
-  }
-
-  removeMagenta(pixels) {
-    function fastSimilar(a, b) {
-      if (Math.abs(a - b) < 20) {
-        return true;
-      }
-      return false;
+    constructor() {
+        this.targets = {}; // a linear representation of the targets keyed with their frame_no
+        this.fps = 30;
     }
 
-    for (var i = 0; i < pixels.data.length; i += 4) {
-      var r = pixels.data[i + 0],
-        g = pixels.data[i + 1],
-        b = pixels.data[i + 2];
+    load(config_filename) {
+        this.config_filename = config_filename;
+        return fetch(this.config_filename)
+            .then(response => response.text())
+            .then(config => this.init(config));
+    }
 
-      if (fastSimilar(r, 255) && fastSimilar(g, 0) && fastSimilar(b, 255)) 
-      {
-        pixels.data[i + 3] = 0;
-      } 
-      else 
-      {
-        var magenta = [60.3199336, 98.254218, -60.842984];
-        var other = rgb2lab([r, g, b]);
-        if (deltaE(magenta, other) < 17) 
-        {
-          pixels.data[i + 3] = 0;
+    init(config) {
+        this.config = JSON.parse(config);
+
+        let window_div = $("<div>")
+            .addClass("window")
+            .appendTo("body");
+
+        window_div.on("click", this.clearParallelVideoCanvas.bind(this));
+
+        // set the window size, video size, and parallel video size to be equal
+        this.setSize(window_div);
+        this.setSize("#video");
+        this.setSize("#parallel_video");
+        this.setSize("#parallel_video_canvas");
+        this.setSize("#overlay");
+        this.setupVideo("video");
+        this.setupVideo("parallel_video");
+        this.setupLoomMenu("#loom-menu");
+
+        let parallel_video_el = document.querySelector("#parallel_video>video");
+
+        parallel_video_el.addEventListener(
+            "seeked",
+            function() {
+                var canvas = document.getElementById("parallel_video_canvas");
+                var context = canvas.getContext("2d");
+                var width = this.config.window.width;
+                var height = this.config.window.height;
+                context.drawImage(parallel_video_el, 0, 0, width, height);
+                var pixels = context.getImageData(0, 0, width, height);
+
+                pixels = this.removeMagenta(pixels);
+
+                context.putImageData(pixels, 0, 0);
+            }.bind(this)
+        );
+
+        // ...
+
+        this.setup();
+    }
+
+    removeMagenta(pixels) {
+        function fastSimilar(a, b) {
+            if (Math.abs(a - b) < 20) {
+                return true;
+            }
+            return false;
         }
-      }
+
+        for (var i = 0; i < pixels.data.length; i += 4) {
+            var r = pixels.data[i + 0],
+                g = pixels.data[i + 1],
+                b = pixels.data[i + 2];
+
+            if (fastSimilar(r, 255) && fastSimilar(g, 0) && fastSimilar(b, 255)) 
+            {
+                pixels.data[i + 3] = 0;
+            } 
+            else 
+            {
+                var magenta = [60.3199336, 98.254218, -60.842984];
+                var other = rgb2lab([r, g, b]);
+                if (deltaE(magenta, other) < 17) 
+                {
+                    pixels.data[i + 3] = 0;
+                }
+            }
+        }
+        return pixels;
     }
-    return pixels;
-  }
+
+    setupLoomMenu(element)
+    {
+        let menu_width = 120;
+        $(element)
+            .attr("width", menu_width)
+            .attr("height", this.config.window.height)
+            .css({
+                position: "absolute",
+                top: 0,
+                left: this.config.window.width,
+                width: menu_width,
+                height: this.config.window.height
+            });
+    }
 
     setupVideo(element) {
-      let video = videojs(element).ready(function() {
-          var player = this;
-          videojs.options.children.loadingSpinner = false;
-          player.play();
-          player.pause();
-          player.currentTime(0 / 29);
+        let video = videojs(element).ready(function() {
+            var player = this;
+            videojs.options.children.loadingSpinner = false;
+            player.play();
+            player.pause();
+            player.currentTime(0 / 29);
 
-          player.off("click");
-          player.on("click", function(ev) {
-              ev.preventDefault();
-          });
-      });
+            player.off("click");
+            player.on("click", function(ev) {
+                ev.preventDefault();
+            });
+        });
     }
 
     chooseCursor(target, element)
@@ -162,7 +178,7 @@ class Viewer {
                     height: 2 * target.shape.radius,
                     borderRadius: "50%"
                 });
-            
+
             this.chooseCursor(target, wrapper);
         }
 
@@ -207,15 +223,15 @@ class Viewer {
                 });
 
             let svg = $(
-                    document.createElementNS("http://www.w3.org/2000/svg", "svg")
-                    );
+                document.createElementNS("http://www.w3.org/2000/svg", "svg")
+            );
             svg.attr({
                 width: w,
                 height: h
             });
             let polygon = $(
-                    document.createElementNS("http://www.w3.org/2000/svg", "polygon")
-                    );
+                document.createElementNS("http://www.w3.org/2000/svg", "polygon")
+            );
             polygon.attr({
                 points: polyString,
                 fill: "transparent",
@@ -228,300 +244,385 @@ class Viewer {
 
         wrapper.attr("data-frame", target.frame_no.toString());
         return wrapper;
-}
-
-  // determine if state can change and change it if it can
-  changeState(target_el, video_name, offset) {
-    video_name = "video";
-    if (typeof offset == "undefined") {
-      offset = 0;
     }
 
-    // frame for this interaction
-    let frame = parseInt($(target_el).attr("data-frame"));
-    console.log("Frame", frame, "for", video_name);
-    let target = this.targets[frame];
-    if (
-      this.findChild(target, this.current_state) != null ||
-      this.findSibling(target, this.current_state) != null ||
-      this.findChild(target, this.config) != null ||
-      target.name == "root"
-    ) {
-      this.current_state = target;
-      let video = videojs(video_name); // video layer to change
-      video.currentTime((frame + 1 + offset) / this.fps);
+    gotoRoot()
+    {
+        var frame = 0;
+        this.current_state = this.config;
+        let video = videojs("video"); // video layer to change
+        video.currentTime((frame + 1) / this.fps);
     }
 
-    $(".loom-target").each(function() {
-      $(this).css("z-index", 100);
-    });
-    if (this.current_state.hasOwnProperty("children")) {
-      for (var i = 0; i < this.current_state.children.length; i++) {
-        let frame = this.current_state.children[i].frame_no;
-        $(".loom-target[data-frame=" + frame + "]").each(function() {
-                $(this).css("z-index", 1000);
+    changeStateWithFrameNo(frame, video_name, offset)
+    {
+        if (typeof offset == "undefined") {
+            offset = 0;
+        }
+
+        let target = this.targets[frame];
+        if (
+            this.findChild(target, this.current_state) != null ||
+            this.findSibling(target, this.current_state) != null ||
+            this.findChild(target, this.config) != null ||
+            target.name == "root"
+        ) {
+            this.current_state = target;
+            let video = videojs(video_name); // video layer to change
+            video.currentTime((frame + 1 + offset) / this.fps);
+        }
+
+        $(".loom-target").each(function() {
+            $(this).css("z-index", 100);
         });
-      }
-    } else {
-          /*let frame = this.current_state.frame_no;
+        if (this.current_state.hasOwnProperty("children")) {
+            for (var i = 0; i < this.current_state.children.length; i++) {
+                let frame = this.current_state.children[i].frame_no;
+                $(".loom-target[data-frame=" + frame + "]").each(function() {
+                    $(this).css("z-index", 1000);
+                });
+            }
+        } else {
+            /*let frame = this.current_state.frame_no;
             $(".loom-target[data-frame=]" + frame + "]").each(function(){
                 $(this).css("z-index", 1000);
             });*/
-    }
-  }
-
-  // tries to find a target state in the immediate children of another
-  // based on its frame number
-  findChild(needle, haystack) {
-    if (!haystack.hasOwnProperty("children")) {
-      // then it's a leaf node
-      return null;
-    }
-    for (var i = 0; i < haystack.children.length; i++) {
-      if (haystack.children[i].frame_no == needle.frame_no) {
-        return haystack.children[i];
-      }
-    }
-    return null;
-  }
-
-  // tries to find a target state (needle) in the siblings of
-  // another (other) based on its frame number
-  findSibling(needle, other) {
-    // find parent first so we can access the children
-    let par;
-    if (other.parent == "root")
-    {
-        par = this.config;
-    }
-    else
-    {
-        par = this.findByName(other.parent); 
-    }
-    if (par == null || !par.hasOwnProperty("children")) {
-      return null;
+        }
     }
 
-    for (var i = 0; i < par.children.length; i++) {
-      if (par.children[i].frame_no == needle.frame_no) {
-        return par.children[i];
-      }
-    }
-    return null;
-  }
+    // determine if state can change and change it if it can
+    changeState(target_el, video_name, offset) {
+        video_name = "video";
+        if (typeof offset == "undefined") {
+            offset = 0;
+        }
 
-  // finds a target by its name
-  findByName(name) {
-    for (var i in this.targets) {
-      if (this.targets[i]["name"] == name) {
-        return this.targets[i];
-      }
-    }
-    return null;
-  }
+        // frame for this interaction
+        let frame = parseInt($(target_el).attr("data-frame"));
+        console.log("Frame", frame, "for", video_name);
 
-getEventHandlingElement(target_type, wrapper)
-{
-    let handler;
-    if (target_type == "poly") 
-    {
-        handler = wrapper.find("svg").find("polygon");
+        this.changeStateWithFrameNo(frame, video_name, offset);
     }
-    else
-    {
-        handler = wrapper;
+
+    // tries to find a target state in the immediate children of another
+    // based on its frame number
+    findChild(needle, haystack) {
+        if (!haystack.hasOwnProperty("children")) {
+            // then it's a leaf node
+            return null;
+        }
+        for (var i = 0; i < haystack.children.length; i++) {
+            if (haystack.children[i].frame_no == needle.frame_no) {
+                return haystack.children[i];
+            }
+        }
+        return null;
     }
-    return handler;
-}
 
-traverse(target) {
-    if (target.name != "root") {
-        let wrapper = this.createInteractionHandler(target);
-        let handler = this.getEventHandlingElement(target.shape.type, wrapper);
-        this.targets[target.frame_no] = target;
-
-        if (target.type == "parallel" && target.actor == "button") 
+    // tries to find a target state (needle) in the siblings of
+    // another (other) based on its frame number
+    findSibling(needle, other) {
+        // find parent first so we can access the children
+        let par;
+        if (other.parent == "root")
         {
-            handler.on("click", function(e) {
-                let arg = e.currentTarget;
-                if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
-                this.changeState(arg, "parallel_video");
-            }.bind(this));
+            par = this.config;
         }
-
-        if (target.type == "linear" && target.actor == "button") 
+        else
         {
-            handler.on( "click", function(e) {
-                let arg = e.currentTarget;
-                this.clearParallelVideoCanvas();
-                if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
-                this.changeState(arg, "video");
-            }.bind(this));
-
-            // this target isn't responsible for a mouseover
-            // hide it and send another event in case there's something under this 
-            // element
-            handler.on("mouseover", function(e){
-                var target = e.currentTarget;
-                console.log(e);
-                if (e.target.tagName == "polygon") 
-                {
-                    target = e.currentTarget.parentElement.parentElement;
-                }
-
-                target.style.display = "none"; 
-                var temp_event = new Event('mouseover');
-
-                // the alternative element under the previous target
-                var alt_target = document.elementFromPoint(e.pageX, e.pageY);
-                alt_target.dispatchEvent(temp_event);
-                target.style.display = "block";
-            });
+            par = this.findByName(other.parent); 
+        }
+        if (par == null || !par.hasOwnProperty("children")) {
+            return null;
         }
 
-        if (target.type == "linear" && target.actor == "hover") {
-            handler.on( "mouseover", function(e) {
-                let arg = e.currentTarget;
-                this.clearParallelVideoCanvas();
-                if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
-                this.changeState(arg, "video", 0);
-            }.bind(this));
+        for (var i = 0; i < par.children.length; i++) {
+            if (par.children[i].frame_no == needle.frame_no) {
+                return par.children[i];
+            }
+        }
+        return null;
+    }
 
-            // this target isn't responsible for a click
-            // hide it and send another event in case there's something under this 
-            // element
-            handler.on("click", function(e){
-                var target = e.currentTarget;
-                console.log(e);
-                if (e.target.tagName == "polygon") 
-                {
-                    target = e.currentTarget.parentElement.parentElement;
-                }
+    // finds a target by its name
+    findByName(name) {
+        for (var i in this.targets) {
+            if (this.targets[i]["name"] == name) {
+                return this.targets[i];
+            }
+        }
+        return null;
+    }
 
-                target.style.display = "none"; 
-                var temp_event = new Event('click');
+    findByDescription(term)
+    {
+        var options = {
+            shouldSort: true,
+            tokenize: true,
+            threshold: 0.3,
+            location: 0,
+            distance: 100,
+            maxPatternLength: 32,
+            minMatchCharLength: 1,
+            keys: [
+                "description",
+                "name"
+            ]
+        };
 
-                // the alternative element under the previous target
-                var alt_target = document.elementFromPoint(e.pageX, e.pageY);
-                alt_target.dispatchEvent(temp_event);
-                target.style.display = "block";
-            });
+        var results = [];
+        for (var i in this.targets)
+        {
+            var fuse = new Fuse([this.targets[i]], options); 
+            var result = fuse.search(term);
+            if (Object.keys(result).length > 0)
+            {
+                var key = Object.keys(result)[0];
+                results.push(result[key]);
+            }
+        }
+        return results;
+    }
+
+    getEventHandlingElement(target_type, wrapper)
+    {
+        let handler;
+        if (target_type == "poly") 
+        {
+            handler = wrapper.find("svg").find("polygon");
+        }
+        else
+        {
+            handler = wrapper;
+        }
+        return handler;
+    }
+
+    traverse(target) {
+        if (target.name != "root") {
+            let wrapper = this.createInteractionHandler(target);
+            let handler = this.getEventHandlingElement(target.shape.type, wrapper);
+            this.targets[target.frame_no] = target;
+
+            if (target.type == "parallel" && target.actor == "button") 
+            {
+                handler.on("click", function(e) {
+                    let arg = e.currentTarget;
+                    if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
+                    this.changeState(arg, "parallel_video");
+                }.bind(this));
+            }
+
+            if (target.type == "linear" && target.actor == "button") 
+            {
+                handler.on( "click", function(e) {
+                    let arg = e.currentTarget;
+                    this.clearParallelVideoCanvas();
+                    if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
+                    this.changeState(arg, "video");
+                }.bind(this));
+
+                // this target isn't responsible for a mouseover
+                // hide it and send another event in case there's something under this 
+                // element
+                handler.on("mouseover", function(e){
+                    var target = e.currentTarget;
+                    console.log(e);
+                    if (e.target.tagName == "polygon") 
+                    {
+                        target = e.currentTarget.parentElement.parentElement;
+                    }
+
+                    target.style.display = "none"; 
+                    var temp_event = new Event('mouseover');
+
+                    // the alternative element under the previous target
+                    var alt_target = document.elementFromPoint(e.pageX, e.pageY);
+                    alt_target.dispatchEvent(temp_event);
+                    target.style.display = "block";
+                });
+            }
+
+            if (target.type == "linear" && target.actor == "hover") {
+                handler.on( "mouseover", function(e) {
+                    let arg = e.currentTarget;
+                    this.clearParallelVideoCanvas();
+                    if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
+                    this.changeState(arg, "video", 0);
+                }.bind(this));
+
+                // this target isn't responsible for a click
+                // hide it and send another event in case there's something under this 
+                // element
+                handler.on("click", function(e){
+                    var target = e.currentTarget;
+                    console.log(e);
+                    if (e.target.tagName == "polygon") 
+                    {
+                        target = e.currentTarget.parentElement.parentElement;
+                    }
+
+                    target.style.display = "none"; 
+                    var temp_event = new Event('click');
+
+                    // the alternative element under the previous target
+                    var alt_target = document.elementFromPoint(e.pageX, e.pageY);
+                    alt_target.dispatchEvent(temp_event);
+                    target.style.display = "block";
+                });
+            }
+
+            if (target.type == "linear" && target.actor == "slider") {
+                handler.on("mousemove", function(e) {
+                    let arg = e.currentTarget;
+                    if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
+                    var target_offset = $(arg).offset();
+                    var target_width = $(arg).outerWidth();
+                    var rel_x = e.pageX - target_offset.left;
+                    var step_size = target_width / 10;
+                    var offset = rel_x / step_size;
+
+                    this.clearParallelVideoCanvas();
+                    this.changeState(arg, "video", offset);
+                }.bind(this));
+            }
+
+            if (target.type == "linear" && target.actor == "drag") {
+                handler.on("mousemove", function(e) {
+                    let arg = e.currentTarget;
+                    if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
+                    var target_offset = $(arg).offset();
+                    var target_height = $(arg).outerHeight();
+                    var rel_y = e.pageY - target_offset.top;
+                    var step_size = target_height / 10;
+                    var offset = rel_y / step_size;
+
+                    this.clearParallelVideoCanvas();
+                    this.changeState(e.currentTarget, "video", offset);
+                }.bind(this));
+            }
+
+            if (target.type == "linear" && target.actor == "arcball") {
+                var self = this;
+                var arcball = $(handler).ArcballManager({
+                    width: target.shape.width,
+                    height: target.shape.height,
+                    frame_offset: parseInt(target["frame_no"]),
+                    interaction_callback: function() {
+                        self.changeState(handler[0], "video");
+                        self.clearParallelVideoCanvas();
+                    }
+                });
+            }
         }
 
-        if (target.type == "linear" && target.actor == "slider") {
-            handler.on("mousemove", function(e) {
-                let arg = e.currentTarget;
-                if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
-                var target_offset = $(arg).offset();
-                var target_width = $(arg).outerWidth();
-                var rel_x = e.pageX - target_offset.left;
-                var step_size = target_width / 10;
-                var offset = rel_x / step_size;
-
-                this.clearParallelVideoCanvas();
-                this.changeState(arg, "video", offset);
-            }.bind(this));
-        }
-
-        if (target.type == "linear" && target.actor == "drag") {
-            handler.on("mousemove", function(e) {
-                let arg = e.currentTarget;
-                if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
-                var target_offset = $(arg).offset();
-                var target_height = $(arg).outerHeight();
-                var rel_y = e.pageY - target_offset.top;
-                var step_size = target_height / 10;
-                var offset = rel_y / step_size;
-
-                this.clearParallelVideoCanvas();
-                this.changeState(e.currentTarget, "video", offset);
-            }.bind(this));
-        }
-
-        if (target.type == "linear" && target.actor == "arcball") {
-            var self = this;
-            var arcball = $(handler).ArcballManager({
-                width: target.shape.width,
-                height: target.shape.height,
-                frame_offset: parseInt(target["frame_no"]),
-                interaction_callback: function() {
-                    self.changeState(handler[0], "video");
-                    self.clearParallelVideoCanvas();
-                }
-            });
+        if (target.hasOwnProperty("children")) {
+            for (var i = 0; i < target.children.length; i++) {
+                this.traverse(target.children[i]);
+            }
         }
     }
 
-    if (target.hasOwnProperty("children")) {
-        for (var i = 0; i < target.children.length; i++) {
-            this.traverse(target.children[i]);
-        }
+    setup()
+    {
+        this.current_state = this.config;
+        this.traverse(this.config);
     }
-}
 
-setup()
-{
-    this.current_state = this.config;
-    this.traverse(this.config);
-}
+    clearParallelVideoCanvas() 
+    {
+        let canvas = document.getElementById("parallel_video_canvas");
+        let context = canvas.getContext("2d");
+        context.clearRect(
+            0,
+            0,
+            this.config.window.width,
+            this.config.window.height
+        );
+    }
 
-clearParallelVideoCanvas() 
-{
-    let canvas = document.getElementById("parallel_video_canvas");
-    let context = canvas.getContext("2d");
-    context.clearRect(
-        0,
-        0,
-        this.config.window.width,
-        this.config.window.height
-    );
-}
-
-  setSize(element) {
-    $(element)
-      .attr("width", this.config.window.width)
-      .attr("height", this.config.window.height)
-      .css({
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: this.config.window.width,
-        height: this.config.window.height
-      });
-  }
+    setSize(element) {
+        $(element)
+            .attr("width", this.config.window.width)
+            .attr("height", this.config.window.height)
+            .css({
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: this.config.window.width,
+                height: this.config.window.height
+            });
+    }
 }
 
 let viewer = null;
 $(document).ready(function() {
-  viewer = new Viewer();
-  viewer.load("config.json");
+    viewer = new Viewer();
+    viewer.load("config.json");
 
-  document.getElementById("test").addEventListener("click", function(){
-    overlay.classList.toggle("hide");
+    document.getElementById("test").addEventListener("click", function(){
+        overlay.classList.toggle("hide");
 
-    var all_polygons = document.querySelectorAll(".loom-target svg polygon");
-    all_polygons.forEach(function(poly){
-        var handler = poly.parentElement.parentElement;
-        var target = {frame_no: handler.getAttribute("data-frame")};
-        var current = viewer.current_state;
-        if (viewer.findChild(target, current) == null && 
-            viewer.findSibling(target, current) == null)
+        var all_polygons = document.querySelectorAll(".loom-target svg polygon");
+        all_polygons.forEach(function(poly){
+            var handler = poly.parentElement.parentElement;
+            var target = {frame_no: handler.getAttribute("data-frame")};
+            var current = viewer.current_state;
+            if (viewer.findChild(target, current) == null && 
+                viewer.findSibling(target, current) == null)
+            {
+                return;
+            }
+            poly.classList.toggle("highlight");
+        });
+
+        $(".loom-target:empty").each(function(){
+            var target = {frame_no: this.getAttribute("data-frame")};
+            var current = viewer.current_state;
+            if (viewer.findChild(target, current) == null && 
+                viewer.findSibling(target, current) == null)
+            {
+                return;
+            }
+            this.classList.toggle("highlight");
+        });
+
+    })
+
+    // when the search input changes
+    $(".input-search").on("input", function(){
+        $(".search-results-table tbody").html("");
+        var term = $(this).val();
+        var results = viewer.findByDescription(term);
+        if (results.length > 0)
         {
-            return;
+            for (var i in results)
+            {
+                var row = "<tr><td>" + results[i].name + "</td></tr>";
+                $(".search-results-table tbody").append(row);
+            }
         }
-        poly.classList.toggle("highlight");
+        else
+        {
+            $(".search-results-table tbody").append("<tr><td></td></tr>");
+        }
     });
 
-    $(".loom-target:empty").each(function(){
-        var target = {frame_no: this.getAttribute("data-frame")};
-        var current = viewer.current_state;
-        if (viewer.findChild(target, current) == null && 
-            viewer.findSibling(target, current) == null)
+    // handle clicking on the search results
+    $(".search-results-table tbody").on("click", "td", function(){
+        var name = this.innerHTML
+        var target = viewer.findByName(name); 
+        if (target.parent == "root")
         {
-            return;
+            viewer.gotoRoot();
         }
-        this.classList.toggle("highlight");
-    });
+        else
+        {
+            var parent = viewer.findByName(target.parent);
+            console.log(target, parent);
+            viewer.changeStateWithFrameNo(parent.frame_no, "video");
+        }
 
-  })
+    });
 });
+

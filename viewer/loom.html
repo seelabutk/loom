@@ -1,6 +1,7 @@
 <html>
     <head>
         <link href="http://vjs.zencdn.net/6.1.0/video-js.css" rel="stylesheet">
+        <link href="css/photon.css" rel="stylesheet">
         <link href="css/style.css" rel="stylesheet">
 
         <script src="http://vjs.zencdn.net/ie8/1.1.2/videojs-ie8.min.js"></script>
@@ -12,11 +13,12 @@
         <script src="js/tools.js"></script>
         <script src="js/arcball_manager.js"></script>
         <script src="js/simpleheat.js"></script>
+        <script src="js/fuse.min.js"></script>
         <script src="js/loom.js"></script>
     </head>
     <body>
     <video id="video" class="video-js" preload="auto" data-setup="{}">
-        <source src="videos/14989.mp4" type='video/mp4'>
+        <source src="videos/24254.mp4" type='video/mp4'>
         <p class="vjs-no-js">
           To view this video please enable JavaScript, and consider upgrading to a web browser that
           <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
@@ -24,7 +26,7 @@
     </video>
 
     <video id="parallel_video" class="video-js" preload="auto" data-setup="{}">
-        <source src="videos/14989.mp4" type='video/mp4'>
+        <source src="videos/24254.mp4" type='video/mp4'>
         <p class="vjs-no-js">
           To view this video please enable JavaScript, and consider upgrading to a web browser that
           <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
@@ -32,7 +34,23 @@
     </video>
     <canvas id="parallel_video_canvas"></canvas>
     <div id="overlay" class="hide"></div>
-    <button id="test">Toggle Helper</button>
+
+    <div id="loom-menu">
+        <span class="title">Loom</span>
+        <span class="text">Hints:</span><input type="checkbox" id="test" class="apple-switch btn-helper btn btn-default">
+        <input type="text" class="form-control input-search" placeholder="Search">
+		<table class="table-striped search-results-table">
+		  <thead>
+			<tr>
+			  <th>State</th>
+			</tr>
+		  </thead>
+		  <tbody>
+            <tr><td></td></tr>
+          </tbody>
+		</table>
+    </div>
+
     <script src="http://vjs.zencdn.net/6.1.0/video.js"></script>
 </body>
 </html>
