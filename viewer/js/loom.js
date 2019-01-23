@@ -55,6 +55,10 @@ class Viewer {
 
         // ...
 
+        this.brushing_element = $("<div>")
+            .addClass("brushing-box")
+            .appendTo("body");
+
         this.setup();
         this.setupLoomMenu("#loom-menu");
     }
@@ -574,10 +578,12 @@ class Viewer {
                     this.brushing = true;
                     this.brushing_start_x = rel_x;
                     this.brushing_start_y = rel_y;
+                    $(".brushing-box").show();
                 }.bind(this));
                 
                 handler.on("mouseup", function(e){
                     this.brushing = false;
+                    $(".brushing-box").hide();
                 }.bind(this));
 
                 handler.on("mousemove", function(e){
@@ -602,6 +608,7 @@ class Viewer {
                     let coord_w = Math.round((brushing_end_x - this.brushing_start_x) / step_x);
                     let coord_h = Math.round((brushing_end_y - this.brushing_start_y) / step_y);
 
+                    // Just to remember, all dimensions are interval size
                     let dim_x = interval;
                     let dim_y = interval;
                     let dim_w = interval;
@@ -619,6 +626,14 @@ class Viewer {
                         offset: offset
                     };
                     console.log(temp);
+
+                    $(".brushing-box")
+                        .css({
+                            left: this.brushing_start_x + target_offset.left, 
+                            top: this.brushing_start_y + target_offset.top, 
+                            width: brushing_end_x - this.brushing_start_x,
+                            height: brushing_end_y - this.brushing_start_y
+                        });
 
                     this.clearParallelVideoCanvas();
                     this.changeState(arg, "video", offset);

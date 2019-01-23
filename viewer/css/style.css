@@ -157,3 +157,12 @@ input.apple-switch:checked:after {
     margin-top: 10px;
     border-radius: 5px;
 }
+
+.brushing-box
+{
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    border: 2px dashed #bbb;
+}
