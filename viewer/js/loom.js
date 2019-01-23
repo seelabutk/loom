@@ -7,6 +7,7 @@ class Viewer {
     constructor() {
         this.targets = {}; // a linear representation of the targets keyed with their frame_no
         this.fps = 30;
+        this.brushing = false;
     }
 
     load(config_filename) {
@@ -123,7 +124,7 @@ class Viewer {
     chooseCursor(target, element)
     {
         var cursor = "auto";
-        if (target.actor == 'hover')
+        if (target.actor == 'hover' || target.actor == 'brush')
             cursor = 'cell';
         else if (target.actor == 'button')
             cursor = 'pointer';
@@ -497,6 +498,9 @@ class Viewer {
                 // this target isn't responsible for a mouseover
                 // hide it and send another event in case there's something under this 
                 // element
+                //
+                // MOA::Bug(Jan 21st 2019) Mouseover will also get called on a button, there has to be a way to distinguish the hover from the click
+                // 
                 handler.on("mouseover", function(e){
                     var target = e.currentTarget;
                     console.log(e);
@@ -553,6 +557,68 @@ class Viewer {
                     var rel_x = e.pageX - target_offset.left;
                     var step_size = target_width / 10;
                     var offset = rel_x / step_size;
+
+                    this.clearParallelVideoCanvas();
+                    this.changeState(arg, "video", offset);
+                }.bind(this));
+            }
+
+            if (target.type == "linear" && target.actor == "brush") {
+                handler.on("mousedown", function(e) {
+                    let arg = e.currentTarget;
+                    var target_offset = $(arg).offset();
+                    var target_width = $(arg).outerWidth();
+
+                    var rel_x = e.pageX - target_offset.left;
+                    var rel_y = e.pageY - target_offset.top;
+                    this.brushing = true;
+                    this.brushing_start_x = rel_x;
+                    this.brushing_start_y = rel_y;
+                }.bind(this));
+                
+                handler.on("mouseup", function(e){
+                    this.brushing = false;
+                }.bind(this));
+
+                handler.on("mousemove", function(e){
+                    if (this.brushing == false)
+                        return;
+
+                    let arg = e.currentTarget;
+                    var target_offset = $(arg).offset();
+                    var target_width = $(arg).outerWidth();
+                    var target_height = $(arg).outerHeight();
+
+                    let brushing_end_x = (e.pageX - target_offset.left);
+                    let brushing_end_y = (e.pageY - target_offset.top);
+
+                    let interval = 4; // the same as the one in interact.py - should be dynamic later
+
+                    let step_x = target_width / interval;
+                    let step_y = target_height / interval;
+                    let coord_x = Math.round(this.brushing_start_x / step_x) ;
+                    let coord_y = Math.round(this.brushing_start_y / step_y) ;
+
+                    let coord_w = Math.round((brushing_end_x - this.brushing_start_x) / step_x);
+                    let coord_h = Math.round((brushing_end_y - this.brushing_start_y) / step_y);
+
+                    let dim_x = interval;
+                    let dim_y = interval;
+                    let dim_w = interval;
+                    let dim_h = interval;
+
+                    let offset = coord_h + coord_x * interval**3 + 
+                        coord_w * interval +
+                        coord_y * interval ** 2; 
+                    
+                    var temp = {
+                        coord_x: coord_x,
+                        coord_y: coord_y,
+                        coord_w: coord_w, 
+                        coord_h: coord_h,
+                        offset: offset
+                    };
+                    console.log(temp);
 
                     this.clearParallelVideoCanvas();
                     this.changeState(arg, "video", offset);

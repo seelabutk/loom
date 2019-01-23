@@ -101,6 +101,47 @@ def clicker(window, target, click=True):
         mouse.position = (0, 0)
     screenshot(window)
 
+def brush(window, target):
+    sleep(1)
+    mouse = Controller()
+    intervals = 4
+    short_delay = 0.1
+    if target['shape']['type'] == 'rect':
+        # the step in pixels for x, and y movement
+        start_x = window['x'] + target['shape']['x']
+        end_x = start_x + target['shape']['width']
+        start_y = window['y'] + target['shape']['y']
+        end_y = start_y + target['shape']['height']
+        step_x = (target['shape']['width']) / intervals
+        step_y = (target['shape']['height']) / intervals
+
+        # loop over all possible x, and y positions
+        
+        for x_mul in range(0, intervals): # range(start_x, end_x, step_x):
+            for y_mul in range(0, intervals): # range(start_y, end_y, step_y):
+                for width_mul in range(1, intervals + 1):
+                    for height_mul in range(1, intervals + 1):
+                        x = x_mul * step_x + start_x
+                        y = y_mul * step_y + start_y
+                        width = width_mul * step_x
+                        height = height_mul * step_y
+
+                        print(x_mul, y_mul, width_mul, height_mul)
+
+                        # now we can make the selections
+                        position = (x, y)
+                        mouse.position = position
+                        sleep(short_delay)
+                        mouse.press(Button.left)
+                        sleep(short_delay)
+                        position = (x + width, y + height)
+                        mouse.position = position
+                        sleep(short_delay)
+                        mouse.release(Button.left)
+                        sleep(short_delay)
+                        screenshot(window)
+                        sleep(short_delay)
+
 
 def slider(window, target):
     sleep(1)
@@ -291,6 +332,11 @@ def dfi(configs, target, helpers):
             elif target['type'] == 'linear' and target['actor'] == 'slider':
                 target['frame_no'] = linear_counter
                 slider(configs['window'], target)
+                sleep(0.5)
+
+            elif target['type'] == 'linear' and target['actor'] == 'brush':
+                target['frame_no'] = linear_counter
+                brush(configs['window'], target)
                 sleep(0.5)
 
             elif target['type'] == 'linear' and target['actor'] == 'drag':
