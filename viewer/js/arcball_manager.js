@@ -106,7 +106,7 @@
         var index = this.translateAnglesToFrame(yaw, pitch, roll);
         var frame = (index + 1) % 500 + this.settings.frame_offset;
         frame = frame / 30;
-        console.log("Frame: ", frame); 
+        //console.log("Frame: ", frame); 
         this.video.currentTime(frame);
     }
 

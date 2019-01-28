@@ -132,8 +132,8 @@ class Viewer {
             cursor = 'cell';
         else if (target.actor == 'button')
             cursor = 'pointer';
-        else if (target.actor == 'slider' || target.actor == 'horizontal-scroll')
-            cursor = 'ew-resize'
+        else if (target.actor == 'sliderx' || target.actor == 'horizontal-scroll')
+            cursor = 'ew-resize' 
         else if (target.actor == 'arcball')
             cursor = 'alias'
         else if (target.actor == 'vertical-slider' || target.actor == 'vertical-scroll')
@@ -552,14 +552,31 @@ class Viewer {
                 });
             }
 
+            // vertical, should be renamed and a new actor type created later
             if (target.type == "linear" && target.actor == "slider") {
+                handler.on("mousemove", function(e) {
+                    let arg = e.currentTarget;
+                    if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
+                    var target_offset = $(arg).offset();
+                    var target_height = $(arg).outerHeight();
+                    var rel_y = e.pageY - target_offset.top;
+                    var step_size = target_height / 20;
+                    var offset = rel_y / step_size;
+
+                    this.clearParallelVideoCanvas();
+                    this.changeState(arg, "video", offset);
+                }.bind(this));
+            }
+
+            // Horizontal
+            if (target.type == "linear" && target.actor == "sliderx") {
                 handler.on("mousemove", function(e) {
                     let arg = e.currentTarget;
                     if (e.target.tagName == "polygon") arg = $(event.target).parent().parent();
                     var target_offset = $(arg).offset();
                     var target_width = $(arg).outerWidth();
                     var rel_x = e.pageX - target_offset.left;
-                    var step_size = target_width / 10;
+                    var step_size = target_width / 40;
                     var offset = rel_x / step_size;
 
                     this.clearParallelVideoCanvas();
@@ -598,7 +615,7 @@ class Viewer {
                     let brushing_end_x = (e.pageX - target_offset.left);
                     let brushing_end_y = (e.pageY - target_offset.top);
 
-                    let interval = 4; // the same as the one in interact.py - should be dynamic later
+                    let interval = 6; // the same as the one in interact.py - should be dynamic later
 
                     let step_x = target_width / interval;
                     let step_y = target_height / interval;
@@ -606,7 +623,7 @@ class Viewer {
                     let coord_y = Math.round(this.brushing_start_y / step_y) ;
 
                     let coord_w = Math.round((brushing_end_x - this.brushing_start_x) / step_x);
-                    let coord_h = Math.round((brushing_end_y - this.brushing_start_y) / step_y);
+                    let coord_h = Math.round((brushing_end_y - this.brushing_start_y) / step_y) - 1; // Why is this -1 important??
 
                     // Just to remember, all dimensions are interval size
                     let dim_x = interval;

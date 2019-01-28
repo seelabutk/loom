@@ -104,7 +104,7 @@ def clicker(window, target, click=True):
 def brush(window, target):
     sleep(1)
     mouse = Controller()
-    intervals = 4
+    intervals = 6
     short_delay = 0.1
     if target['shape']['type'] == 'rect':
         # the step in pixels for x, and y movement
@@ -142,24 +142,16 @@ def brush(window, target):
                         screenshot(window)
                         sleep(short_delay)
 
-
-def slider(window, target):
+def sliderx(window, target):
     sleep(1)
     mouse = Controller()
-    intervals = 10
+    intervals = 40
     short_delay = 0.1
     if target['shape']['type'] == 'rect':
-      step = (target['shape']['width'] - target['shape']['x']) / intervals
-      position = (window['x'] + target['shape']['x'] + target['shape']['width'] / 2, \
+      step = target['shape']['width'] / intervals
+      position = (window['x'] + target['shape']['x'], \
               window['y'] + target['shape']['y'] + target['shape']['height'] / 2)
-    elif target['shape']['type'] == 'circ':
-      step = (3 * target['shape']['radius'] - target['shape']['centerX']) / intervals
-      position = (window['x'] + target['shape']['centerX'], \
-              window['y'] + target['shape']['centerY'])
-    elif target['shape']['type'] == 'poly':
-      step = 20
-      position = (window['x'] + target['shape']['centerX'], \
-              window['y'] + target['shape']['centerY'])
+
     mouse.position = position
     sleep(short_delay)
     for i in range(intervals):
@@ -169,7 +161,38 @@ def slider(window, target):
         mouse.position = position
         sleep(short_delay)
         mouse.release(Button.left)
-        sleep(1)
+        sleep(4)
+        screenshot(window)
+
+def slider(window, target):
+    sleep(1)
+    mouse = Controller()
+    intervals = 20
+    short_delay = 0.1
+    if target['shape']['type'] == 'rect':
+      step = (target['shape']['height']) / intervals
+      position = (window['x'] + target['shape']['x'] + target['shape']['width'] / 2, \
+              window['y'] + target['shape']['y'] + target['shape']['height'] - 2)
+    '''
+    elif target['shape']['type'] == 'circ':
+      step = (3 * target['shape']['radius'] - target['shape']['centerX']) / intervals
+      position = (window['x'] + target['shape']['centerX'], \
+              window['y'] + target['shape']['centerY'])
+    elif target['shape']['type'] == 'poly':
+      step = 20
+      position = (window['x'] + target['shape']['centerX'], \
+              window['y'] + target['shape']['centerY'])
+    '''
+    mouse.position = position
+    sleep(short_delay)
+    for i in range(intervals):
+        mouse.press(Button.left)
+        sleep(short_delay)
+        position = (position[0], position[1] - step)
+        mouse.position = position
+        sleep(short_delay)
+        mouse.release(Button.left)
+        sleep(2)
         screenshot(window)
 
 def drag(window, target):
@@ -246,15 +269,15 @@ def arcball(window, target, helper):
         # click helper 
         # move back
         sleep(0.5)
-        if target['shape']['type'] == 'rect':
-          mouse.position = (window['x'] + target['shape']['x'] + target['shape']['width'] / 2, \
-                  window['y'] + target['shape']['y'] + target['shape']['height'] / 2)
-        elif target['shape']['type'] == 'circ':
-          mouse.position = (window['x'] + target['shape']['centerX'], \
-                  window['y'] + target['shape']['centerY'])
-        elif target['shape']['type'] == 'poly':
-          mouse.position = (window['x'] + target['shape']['centerX'], \
-              window['y'] + target['shape']['centerY'])
+        if helper['shape']['type'] == 'rect':
+          mouse.position = (window['x'] + helper['shape']['x'] + helper['shape']['width'] / 2, \
+                  window['y'] + helper['shape']['y'] + helper['shape']['height'] / 2)
+        elif helper['shape']['type'] == 'circ':
+          mouse.position = (window['x'] + helper['shape']['centerX'], \
+                  window['y'] + helper['shape']['centerY'])
+        elif helper['shape']['type'] == 'poly':
+          mouse.position = (window['x'] + helper['shape']['centerX'], \
+              window['y'] + helper['shape']['centerY'])
         sleep(0.5)
         mouse.click(Button.left)
         sleep(0.5)
@@ -332,6 +355,11 @@ def dfi(configs, target, helpers):
             elif target['type'] == 'linear' and target['actor'] == 'slider':
                 target['frame_no'] = linear_counter
                 slider(configs['window'], target)
+                sleep(0.5)
+
+            elif target['type'] == 'linear' and target['actor'] == 'sliderx':
+                target['frame_no'] = linear_counter
+                sliderx(configs['window'], target)
                 sleep(0.5)
 
             elif target['type'] == 'linear' and target['actor'] == 'brush':
