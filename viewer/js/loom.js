@@ -507,7 +507,10 @@ class Viewer {
                 // 
                 handler.on("mouseover", function(e){
                     var target = e.currentTarget;
-                    console.log(e);
+
+                    if (e.pageX === undefined || e.pageY === undefined)
+                        return;
+
                     if (e.target.tagName == "polygon") 
                     {
                         target = e.currentTarget.parentElement.parentElement;
