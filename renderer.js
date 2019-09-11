@@ -4,6 +4,7 @@
 
 const polylabel = require("polylabel")
 const electron = require("electron");
+const dialog = electron.remote.dialog;
 const fs = require("fs");
 const Menu = electron.remote.Menu;
 const win = electron.remote.getCurrentWindow();
@@ -53,7 +54,7 @@ GC.selected_targets = [];
 GC.target_options_el = document.querySelector(".loom-target-options");
 GC.interactor = null;
 GC.grid = [];
-
+GC.initial_video_path = '';
 
 /*
  * Executes an external process
@@ -93,6 +94,16 @@ var menu = Menu.buildFromTemplate([
             label: "Menu",
             submenu: [
             {
+                label: "Set Initial Video", 
+                accelerator: "CmdOrCtrl+O", 
+                click: open
+            },
+            {
+                label: "Import Configuration",
+                accelerator: "CmdOrCtrl+M", 
+                click: importConfig
+            },
+            {
                 label: "Save",
                 accelerator: "CmdOrCtrl+S",
                 click: save
@@ -130,6 +141,42 @@ var menu = Menu.buildFromTemplate([
         }
 ]);
 Menu.setApplicationMenu(menu);
+
+/* 
+ * Selects an initial video file to be played before the interactive Loom
+ */
+function open()
+{
+    GC.initial_video_path = dialog.showOpenDialog({ properties: ['openFile', 'multiSelections'] });
+}
+
+/*
+ * Import targets from a configuration file
+ */
+function importConfig()
+{
+    let path = dialog.showOpenDialog({ properties: ['openFile'] });
+    if (!path)
+    {
+        return;
+    }
+    let text = fs.readFileSync(path[0]);
+    let targets = JSON.parse(text);
+    
+    // addTab draws and draw removes all selections
+    // so gotta save them first
+    addTab(); 
+    for (let target of targets['children'])
+    {
+        target['description'] = '';
+        target['childof'] = 'Parent';
+        var cloned = JSON.parse(JSON.stringify(target));
+        let id = GC.target_counter++;
+        cloned.name = "Target " + id;
+        GC.tabs[GC.selected_tab].push(cloned);
+    } 
+    draw();
+}
 
 /* 
  * Save the targets from all tabs in a JSON
@@ -206,7 +253,7 @@ function exportLoom()
         process.platform === "win32"
         ? "generate_loom.bat "
         : "./generate_loom.sh ";
-    spawn(cmd + window_size, function(output) {
+    spawn(cmd + window_size + " " + GC.initial_video_path, function(output) {
         console.log(output);
     });
 }

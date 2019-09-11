@@ -96,7 +96,9 @@ def clicker(window, target, click=True):
               window['y'] + target['shape']['centerY'])
     sleep(0.5)
     if click == True:
-        mouse.click(Button.left)
+        mouse.press(Button.left)
+        sleep(0.1)
+        mouse.release(Button.left)
         sleep(0.1)
         mouse.position = (0, 0)
     screenshot(window)
@@ -242,7 +244,9 @@ def arcball(window, target, helper):
     pitch = 20
     mouse.position = position
     sleep(0.1)
-    mouse.click(Button.left)
+    mouse.press(Button.left)
+    sleep(0.1)
+    mouse.release(Button.left)
 
     for x in range(1, 26):
         print (position)
@@ -279,7 +283,9 @@ def arcball(window, target, helper):
           mouse.position = (window['x'] + helper['shape']['centerX'], \
               window['y'] + helper['shape']['centerY'])
         sleep(0.5)
-        mouse.click(Button.left)
+        mouse.press(Button.left)
+        sleep(0.1)
+        mouse.release(Button.left)
         sleep(0.5)
         mouse.position = position
 
