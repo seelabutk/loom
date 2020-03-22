@@ -349,6 +349,7 @@ class Viewer {
         $(".loom-target").each(function() {
             $(this).css("z-index", 100);
         });
+        
         if (this.current_state.hasOwnProperty("children")) {
             for (var i = 0; i < this.current_state.children.length; i++) {
                 let frame = this.current_state.children[i].frame_no;
@@ -361,6 +362,17 @@ class Viewer {
             $(".loom-target[data-frame=]" + frame + "]").each(function(){
                 $(this).css("z-index", 1000);
             });*/
+        }
+
+        var parent = this.findByName(this.current_state.parent);
+        if (parent && parent.hasOwnProperty('children'))
+        {
+            for (var i = 0; i < parent.children.length; i++) {
+                let frame = parent.children[i].frame_no;
+                $(".loom-target[data-frame=" + frame + "]").each(function() {
+                    $(this).css("z-index", 1000);
+                });
+            }
         }
 
         // update the minimap

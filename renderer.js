@@ -173,6 +173,9 @@ function importConfig()
         var cloned = JSON.parse(JSON.stringify(target));
         let id = GC.target_counter++;
         cloned.name = "Target " + id;
+        cloned.shape.midY += 100;
+        cloned.shape.startY+= 100;
+        cloned.shape.endY += 100;
         GC.tabs[GC.selected_tab].push(cloned);
     } 
     draw();
@@ -816,9 +819,11 @@ function drawRectangle(rect)
 
 function drawCircle(c) 
 {
-    c.rad = Math.sqrt(
-            Math.pow(c.midX - c.endX, 2) + Math.pow(c.midY - c.endY, 2)
-            );
+    if (!c.hasOwnProperty('rad')){
+        c.rad = Math.sqrt(
+                Math.pow(c.midX - c.endX, 2) + Math.pow(c.midY - c.endY, 2)
+                );
+    }
     ctx.beginPath();
     ctx.arc(c.midX, c.midY, c.rad, 0, 2 * Math.PI);
     ctx.stroke();
